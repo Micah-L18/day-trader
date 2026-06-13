@@ -1,0 +1,92 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "day-trader"
+version = "0.1.0"
+description = "Desktop app for US-equities day trading (backtest / paper / live) with a mandatory risk-control chokepoint."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "Micah Lloyd" }]
+
+# Base dependencies: enough to run the engine, backtester, risk layer and the
+# full test suite WITHOUT any network access or broker SDK installed.
+dependencies = [
+    "pydantic>=2.5",
+    "pydantic-settings>=2.0",
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "SQLAlchemy>=2.0",
+    "structlog>=24.1",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+# Live/historical market data + order routing via Alpaca. Kept optional so the
+# core package installs and tests run without the broker SDK.
+alpaca = ["alpaca-py>=0.30"]
+# Interactive Brokers (later option). ib_async is the maintained successor to
+# ib_insync -- do NOT use ib_insync.
+ibkr = ["ib_async>=1.0"]
+# Technical-analysis indicators. The bundled example strategy does not require
+# this (it uses pandas directly), but it is available for richer strategies.
+indicators = ["pandas-ta>=0.3.14b0"]
+# Optional richer backtest metrics. The bundled runner computes its own metrics
+# and does not require this.
+backtest = ["vectorbt>=0.26"]
+# Phase 5 desktop UI.
+ui = ["PySide6>=6.6"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "mypy>=1.10",
+    "ruff>=0.5",
+    "freezegun>=1.5",
+]
+
+[project.scripts]
+trader = "trading.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+trading = ["py.typed"]
+
+# ---------------------------------------------------------------------------
+# Tooling
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers"
+markers = [
+    "network: tests that require live network/broker access (skipped by default)",
+]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM", "RUF"]
+# B008: FastAPI-style default-arg calls (not relevant here).
+# UP042: `(str, Enum)` is intentional -- values stay JSON/string-comparable.
+ignore = ["B008", "UP042"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["trading"]
+mypy_path = "src"
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+check_untyped_defs = true
+# Third-party libs without stubs.
+[[tool.mypy.overrides]]
+module = ["alpaca.*", "pandas.*", "pandas_ta.*", "vectorbt.*", "ib_async.*", "PySide6.*"]
+ignore_missing_imports = true
