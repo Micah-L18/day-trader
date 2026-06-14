@@ -64,16 +64,12 @@ const api = {
 
 export type Api = typeof api
 
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
-  }
-} else {
-  // @ts-ignore - defined on Window in index.d.ts
-  window.electron = electronAPI
-  // @ts-ignore
-  window.api = api
+// contextIsolation is always enabled in webPreferences, so the contextBridge is
+// always the correct path. (Relying on `process.contextIsolated` is unreliable
+// under `sandbox: true` — it can be undefined, silently skipping exposure.)
+try {
+  contextBridge.exposeInMainWorld('electron', electronAPI)
+  contextBridge.exposeInMainWorld('api', api)
+} catch (error) {
+  console.error('Failed to expose preload API:', error)
 }
