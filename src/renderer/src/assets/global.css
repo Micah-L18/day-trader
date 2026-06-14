@@ -157,6 +157,15 @@ button {
 .btn--ghost {
   color: var(--text-dim);
 }
+.account-select {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+  padding: 5px 8px;
+  max-width: 170px;
+}
 .btn--pill {
   border-radius: 20px;
   padding: 3px 12px;

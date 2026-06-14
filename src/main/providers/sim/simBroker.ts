@@ -33,9 +33,10 @@ export class SimBroker extends TypedEmitter<BrokerEvents> implements Broker {
   private readonly orders: Order[] = []
   private timer: ReturnType<typeof setInterval> | null = null
 
-  constructor(engine: PriceEngine) {
+  constructor(engine: PriceEngine, opts: { startingCash?: number } = {}) {
     super()
     this.engine = engine
+    this.cash = opts.startingCash ?? STARTING_CASH
     for (const p of SEED_POSITIONS) this.positions.set(p.symbol, { qty: p.qty, avgPrice: p.avgPrice })
   }
 

@@ -6,6 +6,7 @@ import {
   DEFAULT_WATCHLIST,
   type Keymap,
   type LayoutsState,
+  type PortfoliosState,
   type WatchlistsState
 } from '@shared/types'
 
@@ -75,6 +76,26 @@ export function loadLayouts(): LayoutsState {
 
 export function saveLayouts(state: LayoutsState): void {
   writeJson('layouts.json', state)
+}
+
+const DEFAULT_PORTFOLIOS: PortfoliosState = {
+  portfolios: [
+    { id: 'sim', name: 'Simulated', kind: 'sim', startingCash: 50_000 },
+    { id: 'paper', name: 'Alpaca Paper', kind: 'alpaca' }
+  ],
+  activeId: 'sim'
+}
+
+export function loadPortfolios(): PortfoliosState {
+  const data = readJson<Partial<PortfoliosState>>('portfolios.json', {})
+  if (Array.isArray(data.portfolios) && data.portfolios.length > 0) {
+    return { portfolios: data.portfolios, activeId: data.activeId ?? data.portfolios[0].id }
+  }
+  return { portfolios: DEFAULT_PORTFOLIOS.portfolios.map((p) => ({ ...p })), activeId: 'sim' }
+}
+
+export function savePortfolios(state: PortfoliosState): void {
+  writeJson('portfolios.json', state)
 }
 
 export function isOnboarded(): boolean {

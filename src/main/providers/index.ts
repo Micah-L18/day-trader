@@ -10,6 +10,7 @@ export interface CreateProvidersOptions {
   kind: ProviderKind
   creds: AlpacaCredentials | null
   live?: boolean
+  startingCash?: number
   onStatus?: (which: 'market' | 'trading', state: ConnectionState, message?: string) => void
 }
 
@@ -32,7 +33,10 @@ export function createProviders(opts: CreateProvidersOptions): Providers {
     }
   }
   const engine = new PriceEngine()
-  return { marketData: new SimMarketData(engine), broker: new SimBroker(engine) }
+  return {
+    marketData: new SimMarketData(engine),
+    broker: new SimBroker(engine, { startingCash: opts.startingCash })
+  }
 }
 
 export type { Providers } from './types'

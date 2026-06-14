@@ -6,13 +6,13 @@ import { loadConfig } from './config'
 import { createProviders } from './providers'
 import { ProviderManager, type BuildProviders } from './providerManager'
 import { registerIpc } from './ipc'
-import { loadSettings } from './settings'
 import { loadCreds } from './secrets/keychain'
-import { allWatchlistSymbols, loadWatchlists } from './persistence'
+import { allWatchlistSymbols, loadPortfolios, loadWatchlists } from './persistence'
 import { createJournal } from './journal'
 import { SafetyGate } from './risk/safetyGate'
 import { loadRenderer, registerAppScheme, setupRendererProtocol } from './appProtocol'
 import { liveState } from './liveState'
+import { activePortfolio } from './portfolioState'
 
 /** System-wide panic key: flatten everything even when the app isn't focused. */
 const PANIC_ACCELERATOR = 'CommandOrControl+Shift+Backspace'
@@ -22,6 +22,14 @@ let manager: ProviderManager | null = null
 
 // Env gates for live trading (the third gate is an on-screen typed confirm).
 liveState.capable = config.mode === 'live' && config.liveAllowed
+
+// Active portfolio (sim profile / Alpaca account) drives the provider build.
+{
+  const pf = loadPortfolios()
+  const active = pf.portfolios.find((p) => p.id === pf.activeId) ?? pf.portfolios[0]
+  activePortfolio.kind = active.kind
+  activePortfolio.startingCash = active.startingCash ?? 50_000
+}
 
 // Must run before app `ready`.
 registerAppScheme()
@@ -73,12 +81,11 @@ app.whenReady().then(() => {
       kind,
       creds: loadCreds(liveState.armed ? 'live' : 'paper'),
       live: liveState.armed,
+      startingCash: activePortfolio.startingCash,
       onStatus
     })
 
-  const persisted = loadSettings()
-  const initialKind: ProviderKind =
-    persisted.provider === 'alpaca' && loadCreds('paper') ? 'alpaca' : 'sim'
+  const initialKind: ProviderKind = activePortfolio.kind
   const mgr = new ProviderManager(initialKind, build)
   manager = mgr
 

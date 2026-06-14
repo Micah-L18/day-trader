@@ -15,6 +15,7 @@ import type {
   Order,
   OrderRequest,
   PanelKind,
+  PortfoliosState,
   Position,
   Quote,
   RiskDecision,
@@ -89,6 +90,14 @@ const api = {
     get: (): Promise<WatchlistsState> => ipcRenderer.invoke('watchlists:get'),
     set: (state: WatchlistsState): Promise<WatchlistsState> =>
       ipcRenderer.invoke('watchlists:set', state)
+  },
+
+  portfolios: {
+    get: (): Promise<PortfoliosState> => ipcRenderer.invoke('portfolios:get'),
+    save: (state: PortfoliosState): Promise<PortfoliosState> =>
+      ipcRenderer.invoke('portfolios:save', state),
+    setActive: (id: string): Promise<PortfoliosState> =>
+      ipcRenderer.invoke('portfolios:setActive', id)
   },
 
   status: {

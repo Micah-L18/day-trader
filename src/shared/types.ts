@@ -44,6 +44,8 @@ export interface Account {
   equity: number
   cash: number
   buyingPower: number
+  /** Broker account number (Alpaca); undefined for sim. */
+  accountNumber?: string
 }
 
 export interface OrderRequest {
@@ -206,6 +208,20 @@ export interface TradingModeInfo {
 }
 
 export type ProviderKind = 'sim' | 'alpaca'
+
+/** A named account/portfolio profile the user can switch between. */
+export interface Portfolio {
+  id: string
+  name: string
+  kind: ProviderKind
+  /** Starting cash for sim portfolios. */
+  startingCash?: number
+}
+
+export interface PortfoliosState {
+  portfolios: Portfolio[]
+  activeId: string
+}
 
 export interface AlpacaCredentials {
   keyId: string

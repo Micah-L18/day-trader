@@ -22,8 +22,10 @@ import { IntervalBar } from '@renderer/components/IntervalBar'
 import { IndicatorsMenu } from '@renderer/components/IndicatorsMenu'
 import { LayoutTabs } from '@renderer/components/LayoutTabs'
 import { RailResizer } from '@renderer/components/RailResizer'
+import { AccountSelector } from '@renderer/components/AccountSelector'
 import { useChartStore } from '@renderer/state/chartStore'
 import { activeLayout, useLayoutStore } from '@renderer/state/layoutStore'
+import { usePortfolioStore } from '@renderer/state/portfolioStore'
 import { useLiveStore } from '@renderer/state/liveStore'
 import { pct, signedUsd, usd } from '@renderer/lib/format'
 
@@ -85,6 +87,7 @@ function TopBar(): ReactElement {
         </span>
       </div>
       <div className="topbar__right">
+        <AccountSelector />
         <button className="btn btn--ghost" onClick={openScreener}>
           🔎 Screener
         </button>
@@ -131,15 +134,20 @@ function SymbolHeader(): ReactElement {
 
 function AccountSummary(): ReactElement {
   const account = useAccountStore((s) => s.account)
+  const portfolios = usePortfolioStore((s) => s.portfolios)
+  const activeId = usePortfolioStore((s) => s.activeId)
+  const name = portfolios.find((p) => p.id === activeId)?.name ?? 'Account'
 
   return (
     <section className="rail-section">
       <div className="rail-section__head">
-        <span>Individual investing</span>
+        <span>{name}</span>
         <button className="btn btn--pill">Deposit</button>
       </div>
       <div className="account-value">{usd(account?.equity)}</div>
-      <div className="account-change up">Paper account · simulated</div>
+      <div className="account-change up">
+        {account?.accountNumber ? `Acct ${account.accountNumber}` : 'Paper account'}
+      </div>
       <div className="kv" style={{ marginTop: 10 }}>
         <span>Buying power</span>
         <span>{usd(account?.buyingPower)}</span>

@@ -9,6 +9,7 @@ import {
   type LiveState,
   type OrderRequest,
   type PanelKind,
+  type PortfoliosState,
   type SaveSettingsInput,
   type Timeframe,
   type WatchlistsState
@@ -18,19 +19,22 @@ import type { ProviderManager } from '../providerManager'
 import type { SafetyGate } from '../risk/safetyGate'
 import type { Journal } from '../journal'
 import { loadCreds, saveCreds } from '../secrets/keychain'
-import { loadSettings, saveSettings } from '../settings'
+import { saveSettings } from '../settings'
 import { getSettingsInfo, testConnection } from '../settingsService'
 import { openPanelWindow } from '../windows'
 import { liveState } from '../liveState'
+import { activePortfolio } from '../portfolioState'
 import { evaluateArm } from '../risk/liveGate'
 import {
   allWatchlistSymbols,
   isOnboarded,
   loadKeymap,
   loadLayouts,
+  loadPortfolios,
   loadWatchlists,
   saveKeymap,
   saveLayouts,
+  savePortfolios,
   saveWatchlists,
   setOnboarded
 } from '../persistence'
@@ -121,8 +125,6 @@ export function registerIpc(
   ipcMain.handle('settings:save', (_e, input: SaveSettingsInput) => {
     if (input.alpaca) saveCreds('paper', input.alpaca)
     saveSettings({ provider: input.provider })
-    if (!liveState.armed) manager.switch(input.provider)
-    gate.resetDailyBaseline() // new provider re-establishes the equity baseline
     return getSettingsInfo()
   })
   ipcMain.handle('settings:testConnection', (_e, creds?: AlpacaCredentials) =>
@@ -166,10 +168,35 @@ export function registerIpc(
 
   ipcMain.handle('live:disarm', (): LiveState => {
     liveState.armed = false
-    manager.switch(loadSettings().provider)
+    manager.switch(activePortfolio.kind)
     gate.resetDailyBaseline()
     journal.log('live_disarmed')
     broadcastLive()
     return liveSnapshot()
+  })
+
+  // ---- Portfolios (account switcher) ----
+  function applyActive(state: PortfoliosState): void {
+    const p = state.portfolios.find((x) => x.id === state.activeId)
+    if (!p) return
+    activePortfolio.kind = p.kind
+    activePortfolio.startingCash = p.startingCash ?? 50_000
+  }
+
+  ipcMain.handle('portfolios:get', () => loadPortfolios())
+  ipcMain.handle('portfolios:save', (_e, state: PortfoliosState) => {
+    savePortfolios(state)
+    applyActive(state)
+    return state
+  })
+  ipcMain.handle('portfolios:setActive', (_e, id: string) => {
+    const state = loadPortfolios()
+    if (!state.portfolios.some((p) => p.id === id)) return state
+    state.activeId = id
+    savePortfolios(state)
+    applyActive(state)
+    if (!liveState.armed) manager.switch(activePortfolio.kind)
+    gate.resetDailyBaseline()
+    return state
   })
 }

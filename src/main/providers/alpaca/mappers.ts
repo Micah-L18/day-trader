@@ -27,6 +27,7 @@ export interface AlpacaAccount {
   equity: string
   cash: string
   buying_power: string
+  account_number?: string
 }
 
 export interface AlpacaPosition {
@@ -90,7 +91,12 @@ export function mapBar(symbol: string, b: AlpacaBar): Bar {
 }
 
 export function mapAccount(a: AlpacaAccount): Account {
-  return { equity: Number(a.equity), cash: Number(a.cash), buyingPower: Number(a.buying_power) }
+  return {
+    equity: Number(a.equity),
+    cash: Number(a.cash),
+    buyingPower: Number(a.buying_power),
+    accountNumber: a.account_number
+  }
 }
 
 export function mapPosition(p: AlpacaPosition): Position {

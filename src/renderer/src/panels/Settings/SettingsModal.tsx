@@ -95,25 +95,10 @@ export function SettingsModal(): ReactElement | null {
         </div>
 
         <div className="modal__section">
-          <div className="modal__label">Data provider</div>
-          <div className="seg">
-            <button
-              className={`seg__btn ${provider === 'sim' ? 'seg__btn--on' : ''}`}
-              onClick={() => setProvider('sim')}
-            >
-              Simulated
-            </button>
-            <button
-              className={`seg__btn ${provider === 'alpaca' ? 'seg__btn--on' : ''}`}
-              onClick={() => setProvider('alpaca')}
-            >
-              Alpaca (paper)
-            </button>
-          </div>
-        </div>
-
-        <div className="modal__section">
           <div className="modal__label">Alpaca paper API keys</div>
+          <div className="modal__hint" style={{ marginTop: 0, marginBottom: 8 }}>
+            Switch between Simulated / Alpaca accounts from the portfolio selector in the top bar.
+          </div>
           {info?.hasAlpacaKeys && (
             <div className="modal__hint">
               Stored key: {info.alpacaKeyIdMasked} — leave blank to keep it.
