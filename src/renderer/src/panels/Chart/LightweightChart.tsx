@@ -44,70 +44,79 @@ export function LightweightChart({ symbol }: { symbol: string | null }): ReactEl
     const container = containerRef.current
     if (!container) return
 
-    const chart = createChart(container, {
-      autoSize: true,
-      layout: {
-        background: { color: 'transparent' },
-        textColor: '#8b97a6',
-        fontSize: 11,
-        panes: { separatorColor: '#1e2630', separatorHoverColor: '#2a3441', enableResize: true }
-      },
-      grid: {
-        vertLines: { color: 'rgba(30,38,48,0.5)' },
-        horzLines: { color: 'rgba(30,38,48,0.5)' }
-      },
-      rightPriceScale: { borderColor: '#1e2630' },
-      timeScale: { borderColor: '#1e2630', timeVisible: true, secondsVisible: false },
-      crosshair: { mode: CrosshairMode.Normal }
-    })
+    let chart: IChartApi | null = null
+    try {
+      chart = createChart(container, {
+        autoSize: true,
+        layout: {
+          background: { color: 'transparent' },
+          textColor: '#8b97a6',
+          fontSize: 11,
+          panes: { separatorColor: '#1e2630', separatorHoverColor: '#2a3441', enableResize: true }
+        },
+        grid: {
+          vertLines: { color: 'rgba(30,38,48,0.5)' },
+          horzLines: { color: 'rgba(30,38,48,0.5)' }
+        },
+        rightPriceScale: { borderColor: '#1e2630' },
+        timeScale: { borderColor: '#1e2630', timeVisible: true, secondsVisible: false },
+        crosshair: { mode: CrosshairMode.Normal }
+      })
 
-    const candle = chart.addSeries(
-      CandlestickSeries,
-      {
-        upColor: UP,
-        downColor: DOWN,
-        wickUpColor: UP,
-        wickDownColor: DOWN,
-        borderVisible: false
-      },
-      0
-    )
-    const volume = chart.addSeries(
-      HistogramSeries,
-      { priceFormat: { type: 'volume' }, priceLineVisible: false, lastValueVisible: false },
-      1
-    )
-    const histogram = chart.addSeries(
-      HistogramSeries,
-      { priceLineVisible: false, lastValueVisible: false },
-      2
-    )
-    const macdLine = chart.addSeries(
-      LineSeries,
-      { color: '#2f81f7', lineWidth: 1, priceLineVisible: false, lastValueVisible: false },
-      2
-    )
-    const signalLine = chart.addSeries(
-      LineSeries,
-      { color: '#f0a020', lineWidth: 1, priceLineVisible: false, lastValueVisible: false },
-      2
-    )
+      // Ensure the volume (1) and MACD (2) panes exist before adding series to
+      // them — some builds don't auto-create panes from a paneIndex argument.
+      while (chart.panes().length < 3) chart.addPane()
 
-    const panes = chart.panes()
-    panes[0]?.setStretchFactor(6)
-    panes[1]?.setStretchFactor(1.4)
-    panes[2]?.setStretchFactor(2.4)
+      const candle = chart.addSeries(
+        CandlestickSeries,
+        {
+          upColor: UP,
+          downColor: DOWN,
+          wickUpColor: UP,
+          wickDownColor: DOWN,
+          borderVisible: false
+        },
+        0
+      )
+      const volume = chart.addSeries(
+        HistogramSeries,
+        { priceFormat: { type: 'volume' }, priceLineVisible: false, lastValueVisible: false },
+        1
+      )
+      const histogram = chart.addSeries(
+        HistogramSeries,
+        { priceLineVisible: false, lastValueVisible: false },
+        2
+      )
+      const macdLine = chart.addSeries(
+        LineSeries,
+        { color: '#2f81f7', lineWidth: 1, priceLineVisible: false, lastValueVisible: false },
+        2
+      )
+      const signalLine = chart.addSeries(
+        LineSeries,
+        { color: '#f0a020', lineWidth: 1, priceLineVisible: false, lastValueVisible: false },
+        2
+      )
 
-    chartRef.current = chart
-    candleRef.current = candle
-    volumeRef.current = volume
-    macdRef.current = macdLine
-    signalRef.current = signalLine
-    histRef.current = histogram
-    fitRef.current = true
+      const panes = chart.panes()
+      panes[0]?.setStretchFactor(6)
+      panes[1]?.setStretchFactor(1.4)
+      panes[2]?.setStretchFactor(2.4)
+
+      chartRef.current = chart
+      candleRef.current = candle
+      volumeRef.current = volume
+      macdRef.current = macdLine
+      signalRef.current = signalLine
+      histRef.current = histogram
+      fitRef.current = true
+    } catch (err) {
+      console.error('LightweightChart init failed:', err)
+    }
 
     return () => {
-      chart.remove()
+      chart?.remove()
       chartRef.current = null
     }
   }, [])

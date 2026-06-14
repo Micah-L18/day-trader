@@ -282,6 +282,30 @@ button {
   min-height: 0;
   position: relative;
 }
+
+.errbox {
+  padding: 24px;
+  color: var(--down);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow: auto;
+  height: 100vh;
+}
+.errbox h2 {
+  margin: 0 0 8px;
+}
+.errbox p {
+  color: var(--text-dim);
+}
+.errbox pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 12px;
+}
 .chart__intervals {
   display: flex;
   align-items: center;
