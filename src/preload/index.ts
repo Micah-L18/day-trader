@@ -19,6 +19,7 @@ import type {
   Position,
   Quote,
   RiskDecision,
+  RiskLimits,
   RiskState,
   Snapshot,
   SaveSettingsInput,
@@ -83,6 +84,8 @@ const api = {
     setKillSwitch: (on: boolean): Promise<RiskState> =>
       ipcRenderer.invoke('risk:setKillSwitch', on),
     flattenAll: (): Promise<FlattenResult> => ipcRenderer.invoke('risk:flattenAll'),
+    setLimits: (limits: Partial<RiskLimits>): Promise<RiskState> =>
+      ipcRenderer.invoke('risk:setLimits', limits),
     onUpdate: (cb: (s: RiskState) => void): (() => void) => on<RiskState>('stream:risk', cb)
   },
 

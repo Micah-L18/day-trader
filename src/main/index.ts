@@ -7,7 +7,12 @@ import { createProviders } from './providers'
 import { ProviderManager, type BuildProviders } from './providerManager'
 import { registerIpc } from './ipc'
 import { loadCreds } from './secrets/keychain'
-import { allWatchlistSymbols, loadPortfolios, loadWatchlists } from './persistence'
+import {
+  allWatchlistSymbols,
+  loadPortfolios,
+  loadRiskLimits,
+  loadWatchlists
+} from './persistence'
 import { createJournal } from './journal'
 import { SafetyGate } from './risk/safetyGate'
 import { loadRenderer, registerAppScheme, setupRendererProtocol } from './appProtocol'
@@ -95,6 +100,7 @@ app.whenReady().then(() => {
   const gate = new SafetyGate({
     getBroker: () => mgr.broker,
     journal,
+    limits: loadRiskLimits(),
     onState: (state) => {
       for (const win of BrowserWindow.getAllWindows()) {
         if (!win.isDestroyed()) win.webContents.send('stream:risk', state)

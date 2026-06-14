@@ -491,6 +491,25 @@ button {
   color: var(--text-dim);
   font-size: 14px;
 }
+.settabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 18px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.settab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  padding: 6px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+.settab--on {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
 .modal__section {
   padding: 14px 18px;
   border-bottom: 1px solid var(--border-soft);

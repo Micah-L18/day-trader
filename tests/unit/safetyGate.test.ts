@@ -153,6 +153,17 @@ describe('SafetyGate', () => {
     expect(broker.submitted).toHaveLength(0)
   })
 
+  it('applies updated risk limits via setLimits', async () => {
+    const broker = new FakeBroker()
+    const gate = makeGate(broker)
+    gate.setQuote({ symbol: 'AAPL', time: 0, bid: 100, ask: 100, bidSize: 1, askSize: 1, last: 100 })
+    expect((await gate.submitOrder(buy(10))).approved).toBe(true) // 1000 within default ceiling
+
+    gate.setLimits({ maxOrderNotional: 500 })
+    expect((await gate.submitOrder(buy(10))).code).toBe('order_notional') // now 1000 > 500
+    expect(gate.getState().limits.maxOrderNotional).toBe(500)
+  })
+
   it('flattens positions and cancels open orders even with the kill switch on', async () => {
     const broker = new FakeBroker()
     broker.orders = [

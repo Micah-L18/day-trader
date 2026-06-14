@@ -10,6 +10,7 @@ import {
   type OrderRequest,
   type PanelKind,
   type PortfoliosState,
+  type RiskLimits,
   type SaveSettingsInput,
   type Timeframe,
   type WatchlistsState
@@ -35,6 +36,7 @@ import {
   saveKeymap,
   saveLayouts,
   savePortfolios,
+  saveRiskLimits,
   saveWatchlists,
   setOnboarded
 } from '../persistence'
@@ -85,6 +87,11 @@ export function registerIpc(
     return gate.getState()
   })
   ipcMain.handle('risk:flattenAll', () => gate.flattenAll())
+  ipcMain.handle('risk:setLimits', (_e, limits: Partial<RiskLimits>) => {
+    gate.setLimits(limits)
+    saveRiskLimits(gate.getState().limits)
+    return gate.getState()
+  })
 
   // ---- Detached panel windows ----
   ipcMain.handle('windows:open', (_e, panel: PanelKind, params?: Record<string, string>) => {

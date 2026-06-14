@@ -3,10 +3,12 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import {
   DEFAULT_KEYMAP,
+  DEFAULT_RISK_LIMITS,
   DEFAULT_WATCHLIST,
   type Keymap,
   type LayoutsState,
   type PortfoliosState,
+  type RiskLimits,
   type WatchlistsState
 } from '@shared/types'
 
@@ -96,6 +98,14 @@ export function loadPortfolios(): PortfoliosState {
 
 export function savePortfolios(state: PortfoliosState): void {
   writeJson('portfolios.json', state)
+}
+
+export function loadRiskLimits(): RiskLimits {
+  return readJson<RiskLimits>('risk.json', { ...DEFAULT_RISK_LIMITS })
+}
+
+export function saveRiskLimits(limits: RiskLimits): void {
+  writeJson('risk.json', limits)
 }
 
 export function isOnboarded(): boolean {

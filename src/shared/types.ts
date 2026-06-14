@@ -299,6 +299,24 @@ export interface RiskLimits {
   maxOrdersPerMinute: number
 }
 
+export const DEFAULT_RISK_LIMITS: RiskLimits = {
+  maxOrderNotional: 10_000,
+  maxPositionShares: 10_000,
+  maxPositionNotional: 25_000,
+  maxGrossExposure: 100_000,
+  dailyLossLimit: 2_000,
+  maxOrdersPerMinute: 30
+}
+
+export const RISK_LIMIT_ITEMS: { key: keyof RiskLimits; label: string }[] = [
+  { key: 'maxOrderNotional', label: 'Max order notional ($)' },
+  { key: 'maxPositionShares', label: 'Max shares / symbol' },
+  { key: 'maxPositionNotional', label: 'Max notional / symbol ($)' },
+  { key: 'maxGrossExposure', label: 'Max gross exposure ($)' },
+  { key: 'dailyLossLimit', label: 'Daily loss limit ($)' },
+  { key: 'maxOrdersPerMinute', label: 'Max orders / minute' }
+]
+
 export type RiskRejectCode =
   | 'kill_switch'
   | 'daily_halt'

@@ -1,25 +1,17 @@
-import type {
-  Account,
-  FlattenResult,
-  OrderRequest,
-  Position,
-  Quote,
-  RiskDecision,
-  RiskLimits,
-  RiskRejectCode,
-  RiskState
+import {
+  DEFAULT_RISK_LIMITS,
+  type Account,
+  type FlattenResult,
+  type OrderRequest,
+  type Position,
+  type Quote,
+  type RiskDecision,
+  type RiskLimits,
+  type RiskRejectCode,
+  type RiskState
 } from '@shared/types'
 import type { Broker } from '../providers/types'
 import type { Journal } from '../journal'
-
-export const DEFAULT_LIMITS: RiskLimits = {
-  maxOrderNotional: 10_000,
-  maxPositionShares: 10_000,
-  maxPositionNotional: 25_000,
-  maxGrossExposure: 100_000,
-  dailyLossLimit: 2_000,
-  maxOrdersPerMinute: 30
-}
 
 const RATE_WINDOW_MS = 60_000
 
@@ -38,7 +30,7 @@ export interface SafetyGateOptions {
  */
 export class SafetyGate {
   private readonly getBroker: () => Broker
-  private readonly limits: RiskLimits
+  private limits: RiskLimits
   private readonly journal: Journal
   private readonly onState?: (state: RiskState) => void
   private readonly now: () => number
@@ -53,7 +45,7 @@ export class SafetyGate {
 
   constructor(opts: SafetyGateOptions) {
     this.getBroker = opts.getBroker
-    this.limits = { ...DEFAULT_LIMITS, ...opts.limits }
+    this.limits = { ...DEFAULT_RISK_LIMITS, ...opts.limits }
     this.journal = opts.journal ?? { log: () => undefined }
     this.onState = opts.onState
     this.now = opts.now ?? (() => Date.now())
@@ -96,6 +88,12 @@ export class SafetyGate {
   resetDailyBaseline(): void {
     this.startEquity = null
     this.equity = null
+    this.emitState()
+  }
+
+  setLimits(patch: Partial<RiskLimits>): void {
+    this.limits = { ...this.limits, ...patch }
+    this.journal.log('risk_limits', { ...this.limits })
     this.emitState()
   }
 
