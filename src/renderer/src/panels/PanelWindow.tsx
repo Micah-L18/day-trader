@@ -1,22 +1,37 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import type { PanelKind, Timeframe } from '@shared/types'
+import {
+  CHART_RANGES,
+  DEFAULT_INDICATORS,
+  type IndicatorConfig,
+  type PanelKind,
+  type RangeKey,
+  type Timeframe
+} from '@shared/types'
 import { useStreamBridge } from '@renderer/state/useStreamBridge'
 import { useWatchlistStore } from '@renderer/state/watchlistStore'
 import { changePct, useMarketStore } from '@renderer/state/marketStore'
 import { TicketForm } from '@renderer/panels/OrderTicket/TicketForm'
 import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
 import { IntervalBar } from '@renderer/components/IntervalBar'
+import { IndicatorsMenu } from '@renderer/components/IndicatorsMenu'
 import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
 import { Orders } from '@renderer/panels/Orders/Orders'
 import { Positions } from '@renderer/panels/Positions/Positions'
 import { pct, usd } from '@renderer/lib/format'
 
-/** Root for a detached panel window. Streams the same main-process data as the
- * primary window; seeds its symbol from the URL rather than the shared watchlist. */
 export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: string | null }): ReactElement {
   useStreamBridge({ loadWatchlist: false })
-  const [chartInterval, setChartInterval] = useState<Timeframe>('1Min')
-  const [chartAuto, setChartAuto] = useState(true)
+  const [interval, setInterval] = useState<Timeframe>('5Min')
+  const [range, setRangeState] = useState<RangeKey>('1D')
+  const [autoScale, setAutoScale] = useState(true)
+  const [indicators, setIndicators] = useState<IndicatorConfig>({ ...DEFAULT_INDICATORS })
+
+  const setRange = (r: RangeKey): void => {
+    setRangeState(r)
+    setInterval(CHART_RANGES.find((x) => x.key === r)?.interval ?? '5Min')
+  }
+  const toggleIndicator = (k: keyof IndicatorConfig): void =>
+    setIndicators((c) => ({ ...c, [k]: !c[k] }))
 
   useEffect(() => {
     if (!symbol) return
@@ -38,13 +53,24 @@ export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: strin
       )}
       {panel === 'chart' && (
         <>
-          <PanelHeader symbol={symbol} />
-          <LightweightChart symbol={symbol} interval={chartInterval} autoScale={chartAuto} />
+          <PanelHeader
+            symbol={symbol}
+            tools={<IndicatorsMenu indicators={indicators} onToggle={toggleIndicator} />}
+          />
+          <LightweightChart
+            symbol={symbol}
+            interval={interval}
+            range={range}
+            autoScale={autoScale}
+            indicators={indicators}
+          />
           <IntervalBar
-            value={chartInterval}
-            onChange={setChartInterval}
-            autoScale={chartAuto}
-            onToggleAutoScale={() => setChartAuto(!chartAuto)}
+            range={range}
+            onRange={setRange}
+            value={interval}
+            onChange={setInterval}
+            autoScale={autoScale}
+            onToggleAutoScale={() => setAutoScale(!autoScale)}
           />
         </>
       )}
@@ -67,7 +93,13 @@ export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: strin
   )
 }
 
-function PanelHeader({ symbol }: { symbol: string | null }): ReactElement {
+function PanelHeader({
+  symbol,
+  tools
+}: {
+  symbol: string | null
+  tools?: ReactElement
+}): ReactElement {
   const quotes = useMarketStore((s) => s.quotes)
   const opens = useMarketStore((s) => s.opens)
   const q = symbol ? quotes[symbol] : undefined
@@ -79,6 +111,8 @@ function PanelHeader({ symbol }: { symbol: string | null }): ReactElement {
       <span className="panel-head__sym">{symbol ?? '—'}</span>
       <span>{last != null ? usd(last) : '—'}</span>
       <span className={chg >= 0 ? 'up' : 'down'}>{pct(chg)}</span>
+      <span className="spacer" />
+      {tools}
     </div>
   )
 }

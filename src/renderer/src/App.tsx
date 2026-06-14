@@ -18,6 +18,7 @@ import { Positions } from '@renderer/panels/Positions/Positions'
 import { RiskBar } from '@renderer/panels/Risk/RiskBar'
 import { PopOutButton } from '@renderer/components/PopOutButton'
 import { IntervalBar } from '@renderer/components/IntervalBar'
+import { IndicatorsMenu } from '@renderer/components/IndicatorsMenu'
 import { LayoutTabs } from '@renderer/components/LayoutTabs'
 import { RailResizer } from '@renderer/components/RailResizer'
 import { useChartStore } from '@renderer/state/chartStore'
@@ -165,8 +166,12 @@ function ChartPanel(): ReactElement {
   const opens = useMarketStore((s) => s.opens)
   const interval = useChartStore((s) => s.interval)
   const setInterval = useChartStore((s) => s.setInterval)
+  const range = useChartStore((s) => s.range)
+  const setRange = useChartStore((s) => s.setRange)
   const autoScale = useChartStore((s) => s.autoScale)
   const setAutoScale = useChartStore((s) => s.setAutoScale)
+  const indicators = useChartStore((s) => s.indicators)
+  const toggleIndicator = useChartStore((s) => s.toggleIndicator)
 
   const q = selected ? quotes[selected] : undefined
   const last = q ? q.last ?? q.bid : undefined
@@ -181,15 +186,22 @@ function ChartPanel(): ReactElement {
           <span className={up ? 'up' : 'down'}>{pct(chg)}</span>
         </div>
         <div className="chart__tools">
-          <span className="tool">＋ Indicators</span>
-          <span className="tool">✎ Draw</span>
+          <IndicatorsMenu indicators={indicators} onToggle={toggleIndicator} />
           <PopOutButton panel="chart" symbol={selected} title="Pop chart into its own window" />
         </div>
       </div>
 
-      <LightweightChart symbol={selected} interval={interval} autoScale={autoScale} />
+      <LightweightChart
+        symbol={selected}
+        interval={interval}
+        range={range}
+        autoScale={autoScale}
+        indicators={indicators}
+      />
 
       <IntervalBar
+        range={range}
+        onRange={setRange}
         value={interval}
         onChange={setInterval}
         autoScale={autoScale}

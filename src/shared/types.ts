@@ -98,6 +98,51 @@ export const CHART_INTERVALS: { tf: Timeframe; label: string }[] = [
   { tf: '1Day', label: '1D' }
 ]
 
+/** History "go back" ranges; each sets a default interval + a time span. */
+export type RangeKey = '1D' | '1W' | '1M' | '6M' | '1Y' | 'MAX'
+export const CHART_RANGES: { key: RangeKey; interval: Timeframe; durationMs: number }[] = [
+  { key: '1D', interval: '5Min', durationMs: 86_400_000 },
+  { key: '1W', interval: '1Hour', durationMs: 7 * 86_400_000 },
+  { key: '1M', interval: '1Hour', durationMs: 30 * 86_400_000 },
+  { key: '6M', interval: '1Day', durationMs: 182 * 86_400_000 },
+  { key: '1Y', interval: '1Day', durationMs: 365 * 86_400_000 },
+  { key: 'MAX', interval: '1Day', durationMs: 1825 * 86_400_000 }
+]
+
+/** Toggleable chart indicators. */
+export interface IndicatorConfig {
+  volume: boolean
+  macd: boolean
+  rsi: boolean
+  ema20: boolean
+  ema50: boolean
+  sma20: boolean
+  vwap: boolean
+  bbands: boolean
+}
+
+export const DEFAULT_INDICATORS: IndicatorConfig = {
+  volume: true,
+  macd: true,
+  rsi: false,
+  ema20: false,
+  ema50: false,
+  sma20: false,
+  vwap: false,
+  bbands: false
+}
+
+export const INDICATOR_ITEMS: { key: keyof IndicatorConfig; label: string; pane: boolean }[] = [
+  { key: 'volume', label: 'Volume', pane: true },
+  { key: 'macd', label: 'MACD (12,26,9)', pane: true },
+  { key: 'rsi', label: 'RSI (14)', pane: true },
+  { key: 'ema20', label: 'EMA 20', pane: false },
+  { key: 'ema50', label: 'EMA 50', pane: false },
+  { key: 'sma20', label: 'SMA 20', pane: false },
+  { key: 'vwap', label: 'VWAP', pane: false },
+  { key: 'bbands', label: 'Bollinger Bands', pane: false }
+]
+
 export interface Trade {
   symbol: string
   time: number

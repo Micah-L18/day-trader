@@ -750,6 +750,55 @@ button {
   border-top: 1px solid var(--border);
   background: var(--bg-panel);
 }
+.range--mini {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.sep {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 6px;
+}
+
+/* Indicators menu */
+.indmenu {
+  position: relative;
+}
+.indmenu__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+.indmenu__pop {
+  position: absolute;
+  right: 0;
+  top: 22px;
+  z-index: 31;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  padding: 8px;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.indmenu__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 5px;
+  color: var(--text-dim);
+  font-size: 12px;
+  cursor: pointer;
+}
+.indmenu__row:hover {
+  background: var(--bg-elev);
+  color: var(--text);
+}
 
 /* ---------- Status bar ---------- */
 .statusbar {
