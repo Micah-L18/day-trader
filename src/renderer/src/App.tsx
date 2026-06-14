@@ -32,6 +32,7 @@ function App(): ReactElement {
       <RiskBar />
       <StatusBar />
       <SettingsModal />
+      <OrderTicket />
     </div>
   )
 }
@@ -71,7 +72,7 @@ function SymbolHeader(): ReactElement {
   const selected = useWatchlistStore((s) => s.selected)
   const quotes = useMarketStore((s) => s.quotes)
   const opens = useMarketStore((s) => s.opens)
-  const setSide = useTicketStore((s) => s.setSide)
+  const openTicket = useTicketStore((s) => s.openTicket)
 
   const q = selected ? quotes[selected] : undefined
   const last = q ? q.last ?? q.bid : undefined
@@ -89,10 +90,10 @@ function SymbolHeader(): ReactElement {
         {up ? '▲' : '▼'} {signedUsd(chgAbs)} ({pct(chg)})
       </div>
       <div className="trade-buttons">
-        <button className="btn btn--buy" onClick={() => setSide('buy')}>
+        <button className="btn btn--buy" onClick={() => openTicket('buy')}>
           Buy
         </button>
-        <button className="btn btn--short" onClick={() => setSide('sell')}>
+        <button className="btn btn--short" onClick={() => openTicket('sell')}>
           Short
         </button>
       </div>
@@ -178,7 +179,6 @@ function LeftRail(): ReactElement {
   return (
     <aside className="leftrail">
       <SymbolHeader />
-      <OrderTicket />
       <AccountSummary />
       <Watchlist />
       <Orders />

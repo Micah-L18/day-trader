@@ -456,9 +456,34 @@ button {
   font-size: 12px;
 }
 
-/* ---------- Order ticket ---------- */
-.ticket .rail-section__title {
-  margin-bottom: 8px;
+/* ---------- Order ticket (floating, draggable) ---------- */
+.float-ticket {
+  position: fixed;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  z-index: 45;
+}
+.float-ticket__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: move;
+  user-select: none;
+  font-weight: 600;
+  touch-action: none;
+}
+.float-ticket__close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+.float-ticket__body {
+  padding: 12px;
 }
 .seg--full {
   display: flex;
