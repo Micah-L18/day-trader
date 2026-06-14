@@ -91,7 +91,7 @@ mypy                   # type-check
 | 2 | Backtest harness + example strategy + metrics | ✅ implemented |
 | 3 | Engine + Risk Layer (all checks) + persistence | ✅ implemented & tested |
 | 4 | Paper hardening: partial fills, reconnect, sessions | ⚙️ engine supports it; needs an extended paper run to sign off |
-| 5 | PySide6 desktop UI + kill switch | 🚧 scaffold in `trading.ui.app` |
+| 5 | PySide6 desktop UI + kill switch | ✅ equity chart, positions, fills blotter, log pane, kill switch (`trading.ui.app`) |
 | 6 | Live (human-gated) | ⛔ gated — do not enable without sign-off |
 
 ## Decisions awaiting confirmation (BUILD_PLAN §9)

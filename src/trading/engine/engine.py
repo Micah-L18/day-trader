@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import queue
 import time
+from collections import deque
 from collections.abc import Sequence
+from datetime import datetime
 from decimal import Decimal
 
 from trading.broker.base import Broker
@@ -43,6 +45,7 @@ from trading.core.models import (
     Order,
     Position,
     Quote,
+    utcnow,
 )
 from trading.data.base import MarketDataProvider
 from trading.persistence.repositories import NullRepository, Repository
@@ -79,6 +82,10 @@ class Engine:
         self._account: Account | None = None
         self._prices: dict[str, Decimal] = {}
         self._open_orders: dict[str, Order] = {}
+
+        # Bounded in-memory history so the UI can render without re-querying the DB.
+        self._equity_history: deque[tuple[datetime, Decimal]] = deque(maxlen=5000)
+        self._recent_fills: deque[Fill] = deque(maxlen=500)
 
         self._queue: queue.Queue[Event] = queue.Queue()
         self._running = False
@@ -130,6 +137,7 @@ class Engine:
 
     def on_fill(self, fill: Fill) -> None:
         self.repo.record_fill(fill)
+        self._recent_fills.append(fill)
         log.info(
             "fill",
             symbol=fill.symbol,
@@ -302,6 +310,8 @@ class Engine:
             unrealized_pnl=unrealized,
             ts=ts,  # type: ignore[arg-type]
         )
+        ts_val = ts if isinstance(ts, datetime) else utcnow()
+        self._equity_history.append((ts_val, self._account.equity))
 
     # -- introspection -----------------------------------------------------
     @property
@@ -311,3 +321,23 @@ class Engine:
     @property
     def account(self) -> Account | None:
         return self._account
+
+    @property
+    def paused(self) -> bool:
+        """True when new entries are suppressed (e.g. after a disconnect)."""
+        return self._trading_paused
+
+    @property
+    def equity_history(self) -> list[tuple[datetime, Decimal]]:
+        """Recent ``(timestamp, equity)`` points for the equity-curve chart."""
+        return list(self._equity_history)
+
+    @property
+    def recent_fills(self) -> list[Fill]:
+        """Most recent fills (newest last) for the blotter."""
+        return list(self._recent_fills)
+
+    @property
+    def open_orders(self) -> list[Order]:
+        """Currently working (non-terminal) orders."""
+        return list(self._open_orders.values())

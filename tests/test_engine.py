@@ -72,6 +72,19 @@ def test_auto_stop_protects_position_on_downtrend(db) -> None:
     assert engine.positions.get("AAPL") is None  # protective stop fired
 
 
+def test_engine_exposes_history_for_ui(db) -> None:
+    # The UI renders from these in-memory buffers (no DB round-trips).
+    repo = SqlRepository(db)
+    broker = SimulatedBroker(Decimal("100000"))
+    engine = _engine(BuyOnce(["AAPL"]), broker, trending_bars("AAPL", 15), repo, _NO_STOP)
+    engine.run_backtest()
+    assert len(engine.equity_history) >= 1
+    assert len(engine.recent_fills) >= 1
+    _ts, equity = engine.equity_history[-1]
+    assert engine.account is not None
+    assert equity == engine.account.equity
+
+
 def test_paused_trading_suppresses_entries(db) -> None:
     repo = SqlRepository(db)
     broker = SimulatedBroker(Decimal("100000"))
