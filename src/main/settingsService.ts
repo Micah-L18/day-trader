@@ -6,7 +6,7 @@ import { AlpacaRest } from './providers/alpaca/rest'
 const maskKey = (k: string): string => (k.length <= 6 ? '••••' : `${k.slice(0, 4)}••••${k.slice(-2)}`)
 
 export function getSettingsInfo(): SettingsInfo {
-  const creds = loadCreds()
+  const creds = loadCreds('paper')
   return {
     provider: loadSettings().provider,
     hasAlpacaKeys: creds != null,

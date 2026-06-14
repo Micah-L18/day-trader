@@ -12,12 +12,16 @@ import { loadWatchlist } from './persistence'
 import { createJournal } from './journal'
 import { SafetyGate } from './risk/safetyGate'
 import { loadRenderer, registerAppScheme, setupRendererProtocol } from './appProtocol'
+import { liveState } from './liveState'
 
 /** System-wide panic key: flatten everything even when the app isn't focused. */
 const PANIC_ACCELERATOR = 'CommandOrControl+Shift+Backspace'
 
 const config = loadConfig()
 let manager: ProviderManager | null = null
+
+// Env gates for live trading (the third gate is an on-screen typed confirm).
+liveState.capable = config.mode === 'live' && config.liveAllowed
 
 // Must run before app `ready`.
 registerAppScheme()
@@ -62,12 +66,19 @@ app.whenReady().then(() => {
 
   // Build providers (creds loaded from the OS keychain). Sim unless the user
   // saved Alpaca keys and selected Alpaca.
+  // Live endpoints + live credentials are used ONLY when armed (after the typed
+  // confirmation); otherwise paper.
   const build: BuildProviders = (kind, onStatus) =>
-    createProviders({ kind, creds: loadCreds(), live: config.mode === 'live', onStatus })
+    createProviders({
+      kind,
+      creds: loadCreds(liveState.armed ? 'live' : 'paper'),
+      live: liveState.armed,
+      onStatus
+    })
 
   const persisted = loadSettings()
   const initialKind: ProviderKind =
-    persisted.provider === 'alpaca' && loadCreds() ? 'alpaca' : 'sim'
+    persisted.provider === 'alpaca' && loadCreds('paper') ? 'alpaca' : 'sim'
   const mgr = new ProviderManager(initialKind, build)
   manager = mgr
 
@@ -89,7 +100,7 @@ app.whenReady().then(() => {
     onQuote: (q) => gate.setQuote(q)
   })
 
-  registerIpc(mgr, config, gate)
+  registerIpc(mgr, config, gate, journal)
   mgr.subscribe(loadWatchlist())
 
   // Global panic-flatten (works even when another app is focused).

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import type { ConnectionState, TradingModeInfo } from '@shared/types'
+import type { ConnectionState } from '@shared/types'
 import { useAccountStore } from '@renderer/state/accountStore'
 import { changePct, useMarketStore } from '@renderer/state/marketStore'
 import { useWatchlistStore } from '@renderer/state/watchlistStore'
@@ -11,6 +11,7 @@ import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
 import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
 import { SettingsModal } from '@renderer/panels/Settings/SettingsModal'
 import { OnboardingModal } from '@renderer/panels/Onboarding/OnboardingModal'
+import { LiveArmModal } from '@renderer/panels/Live/LiveArmModal'
 import { OrderTicket } from '@renderer/panels/OrderTicket/OrderTicket'
 import { Orders } from '@renderer/panels/Orders/Orders'
 import { Positions } from '@renderer/panels/Positions/Positions'
@@ -21,6 +22,7 @@ import { LayoutTabs } from '@renderer/components/LayoutTabs'
 import { RailResizer } from '@renderer/components/RailResizer'
 import { useChartStore } from '@renderer/state/chartStore'
 import { activeLayout, useLayoutStore } from '@renderer/state/layoutStore'
+import { useLiveStore } from '@renderer/state/liveStore'
 import { pct, signedUsd, usd } from '@renderer/lib/format'
 
 /**
@@ -35,6 +37,7 @@ function App(): ReactElement {
   const railWidth = useLayoutStore((s) => activeLayout(s)?.railWidth ?? 320)
   const loaded = useLayoutStore((s) => s.loaded)
   const interval = useChartStore((s) => s.interval)
+  const liveArmed = useLiveStore((s) => s.live.armed)
 
   useEffect(() => {
     void useLayoutStore.getState().load()
@@ -44,7 +47,7 @@ function App(): ReactElement {
   }, [interval, loaded])
 
   return (
-    <div className="app">
+    <div className={`app ${liveArmed ? 'app--live' : ''}`}>
       <TopBar />
       <div className="workspace" style={{ gridTemplateColumns: `${railWidth}px 5px 1fr` }}>
         <LeftRail />
@@ -55,6 +58,7 @@ function App(): ReactElement {
       <StatusBar />
       <SettingsModal />
       <OnboardingModal />
+      <LiveArmModal />
       <OrderTicket />
     </div>
   )
@@ -206,31 +210,42 @@ function ConnDot({ label, state }: { label: string; state: ConnectionState }): R
 
 function StatusBar(): ReactElement {
   const [version, setVersion] = useState('…')
-  const [info, setInfo] = useState<TradingModeInfo>({
-    mode: 'paper',
-    liveAllowed: false,
-    provider: 'sim'
-  })
   const status = useSystemStore((s) => s.status)
+  const openLiveArm = useSystemStore((s) => s.openLiveArm)
+  const live = useLiveStore((s) => s.live)
+  const setLive = useLiveStore((s) => s.setLive)
 
   useEffect(() => {
     void window.api.getVersion().then(setVersion)
-    void window.api.getTradingMode().then(setInfo)
   }, [])
+
+  const disarm = async (): Promise<void> => {
+    setLive(await window.api.live.disarm())
+  }
 
   return (
     <footer className="statusbar">
-      <span
-        className={`mode-pill ${info.mode === 'live' ? 'mode-pill--live' : 'mode-pill--paper'}`}
-      >
-        {info.mode.toUpperCase()} TRADING
+      <span className={`mode-pill ${live.armed ? 'mode-pill--live' : 'mode-pill--paper'}`}>
+        {live.armed ? '● LIVE — REAL MONEY' : 'PAPER TRADING'}
       </span>
       <span className="status-dim">provider: {status.provider}</span>
       <ConnDot label="data" state={status.market} />
       <ConnDot label="broker" state={status.trading} />
       {status.message && <span className="status-dim">{status.message}</span>}
       <span className="spacer" />
-      <span className="status-dim">live gate: {info.liveAllowed ? 'armed' : 'locked'}</span>
+      {live.capable ? (
+        live.armed ? (
+          <button className="btn btn--sm btn--danger" onClick={disarm}>
+            Disarm live
+          </button>
+        ) : (
+          <button className="btn btn--sm btn--danger" onClick={openLiveArm}>
+            Arm live…
+          </button>
+        )
+      ) : (
+        <span className="status-dim">live gate: locked</span>
+      )}
       <span className="status-dim">v{version}</span>
     </footer>
   )

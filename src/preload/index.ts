@@ -3,12 +3,15 @@ import { electronAPI } from '@electron-toolkit/preload'
 import type {
   Account,
   AlpacaCredentials,
+  ArmLiveInput,
+  ArmLiveResult,
   Bar,
   BarUpdate,
   ConnectionStatus,
   FlattenResult,
   Keymap,
   LayoutsState,
+  LiveState,
   Order,
   OrderRequest,
   PanelKind,
@@ -115,6 +118,13 @@ const api = {
   onboarding: {
     get: (): Promise<boolean> => ipcRenderer.invoke('onboarding:get'),
     complete: (): Promise<boolean> => ipcRenderer.invoke('onboarding:complete')
+  },
+
+  live: {
+    getState: (): Promise<LiveState> => ipcRenderer.invoke('live:getState'),
+    arm: (input: ArmLiveInput): Promise<ArmLiveResult> => ipcRenderer.invoke('live:arm', input),
+    disarm: (): Promise<LiveState> => ipcRenderer.invoke('live:disarm'),
+    onUpdate: (cb: (s: LiveState) => void): (() => void) => on<LiveState>('stream:live', cb)
   }
 }
 

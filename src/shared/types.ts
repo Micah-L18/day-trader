@@ -169,6 +169,30 @@ export interface TestConnectionResult {
   message: string
 }
 
+// ---- Live-trading gate ----
+
+/** The user must type this exactly to arm live trading (the on-screen confirm). */
+export const LIVE_CONFIRM_PHRASE = 'ENABLE LIVE'
+
+export interface LiveState {
+  /** Env gate satisfied: app mode=live AND ALLOW_LIVE_TRADING=1. */
+  capable: boolean
+  /** Runtime gate satisfied: user typed the confirmation and orders route live. */
+  armed: boolean
+  hasLiveKeys: boolean
+}
+
+export interface ArmLiveInput {
+  confirm: string
+  live?: AlpacaCredentials
+}
+
+export interface ArmLiveResult {
+  ok: boolean
+  armed: boolean
+  message: string
+}
+
 // ---- Risk / SafetyGate ----
 
 export interface RiskLimits {

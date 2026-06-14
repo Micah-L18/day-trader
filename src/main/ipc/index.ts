@@ -1,8 +1,12 @@
-import { app, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import {
+  LIVE_CONFIRM_PHRASE,
   type AlpacaCredentials,
+  type ArmLiveInput,
+  type ArmLiveResult,
   type Keymap,
   type LayoutsState,
+  type LiveState,
   type OrderRequest,
   type PanelKind,
   type SaveSettingsInput,
@@ -11,10 +15,13 @@ import {
 import type { AppConfig } from '../config'
 import type { ProviderManager } from '../providerManager'
 import type { SafetyGate } from '../risk/safetyGate'
+import type { Journal } from '../journal'
 import { loadCreds, saveCreds } from '../secrets/keychain'
-import { saveSettings } from '../settings'
+import { loadSettings, saveSettings } from '../settings'
 import { getSettingsInfo, testConnection } from '../settingsService'
 import { openPanelWindow } from '../windows'
+import { liveState } from '../liveState'
+import { evaluateArm } from '../risk/liveGate'
 import {
   isOnboarded,
   loadKeymap,
@@ -32,10 +39,15 @@ import {
  * transparent). Order submission is intentionally NOT exposed yet — it arrives
  * in Phase 4 behind the SafetyGate.
  */
-export function registerIpc(manager: ProviderManager, config: AppConfig, gate: SafetyGate): void {
+export function registerIpc(
+  manager: ProviderManager,
+  config: AppConfig,
+  gate: SafetyGate,
+  journal: Journal
+): void {
   ipcMain.handle('app:getVersion', () => app.getVersion())
   ipcMain.handle('app:getTradingMode', () => ({
-    mode: config.mode,
+    mode: liveState.armed ? 'live' : 'paper',
     liveAllowed: config.liveAllowed,
     provider: manager.marketData.name
   }))
@@ -103,13 +115,57 @@ export function registerIpc(manager: ProviderManager, config: AppConfig, gate: S
   // ---- Settings ----
   ipcMain.handle('settings:get', () => getSettingsInfo())
   ipcMain.handle('settings:save', (_e, input: SaveSettingsInput) => {
-    if (input.alpaca) saveCreds(input.alpaca)
+    if (input.alpaca) saveCreds('paper', input.alpaca)
     saveSettings({ provider: input.provider })
-    manager.switch(input.provider)
+    if (!liveState.armed) manager.switch(input.provider)
     gate.resetDailyBaseline() // new provider re-establishes the equity baseline
     return getSettingsInfo()
   })
   ipcMain.handle('settings:testConnection', (_e, creds?: AlpacaCredentials) =>
-    testConnection(creds ?? loadCreds())
+    testConnection(creds ?? loadCreds('paper'))
   )
+
+  // ---- Live trading (the third gate: an on-screen typed confirmation) ----
+  const liveSnapshot = (): LiveState => ({
+    capable: liveState.capable,
+    armed: liveState.armed,
+    hasLiveKeys: loadCreds('live') != null
+  })
+  const broadcastLive = (): void => {
+    const payload = liveSnapshot()
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) win.webContents.send('stream:live', payload)
+    }
+  }
+
+  ipcMain.handle('live:getState', (): LiveState => liveSnapshot())
+
+  ipcMain.handle('live:arm', (_e, input: ArmLiveInput): ArmLiveResult => {
+    // Store provided live keys only once the env + confirm gates have passed.
+    if (liveState.capable && input.confirm === LIVE_CONFIRM_PHRASE && input.live?.keyId && input.live?.secretKey) {
+      saveCreds('live', input.live)
+    }
+    const decision = evaluateArm({
+      capable: liveState.capable,
+      confirm: input.confirm,
+      hasLiveKeys: loadCreds('live') != null
+    })
+    if (!decision.ok) return { ok: false, armed: liveState.armed, message: decision.message }
+
+    liveState.armed = true
+    manager.switch('alpaca') // rebuilds with live endpoints + live credentials
+    gate.resetDailyBaseline()
+    journal.log('live_armed')
+    broadcastLive()
+    return { ok: true, armed: true, message: decision.message }
+  })
+
+  ipcMain.handle('live:disarm', (): LiveState => {
+    liveState.armed = false
+    manager.switch(loadSettings().provider)
+    gate.resetDailyBaseline()
+    journal.log('live_disarmed')
+    broadcastLive()
+    return liveSnapshot()
+  })
 }

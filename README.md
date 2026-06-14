@@ -10,7 +10,7 @@ positions/P&L, and programmable hotkeys — backed by **Alpaca**.
 
 ## Status
 
-Phases 0–5 complete (see [`PLAN.md`](./PLAN.md) §8):
+All phases (0–7) complete (see [`PLAN.md`](./PLAN.md) §8):
 
 - **Charting** — Lightweight Charts v5: candles + Volume + MACD panes, switchable
   intervals (1m–1D) with live aggregation.
@@ -22,6 +22,10 @@ Phases 0–5 complete (see [`PLAN.md`](./PLAN.md) §8):
 - **Hotkeys** — fully rebindable in-app keymap + a global panic key.
 - **Multi-window** — pop any panel (chart/ticket/watchlist/…) into its own OS window.
 - **Layouts** — named tabs + a resizable rail, persisted across restarts.
+- **Packaging** — custom `app://` production rendering + strict CSP, app icon,
+  first-run onboarding, cross-platform installers.
+- **Live trading** — off by default behind three gates (env `mode=live` + env
+  `ALLOW_LIVE_TRADING=1` + a typed on-screen confirmation), with separate live keys.
 
 ## Tech stack
 
@@ -82,8 +86,22 @@ The app stores everything it needs locally (no `.env` required):
   encrypted in the OS keychain; the renderer never sees them.
 - **Watchlist, hotkeys, layouts** — persisted as JSON in the app's userData dir.
 
-Real-money trading is gated off and additionally requires `ALLOW_LIVE_TRADING=1`
-plus app `mode=live` (Phase 7) — keep both off until you intend to trade live.
+## Live trading (advanced — three gates)
+
+Real money is **off by default** and stays off unless **all three** gates pass:
+
+1. Launch with env `TRADING_MODE=live`,
+2. **and** env `ALLOW_LIVE_TRADING=1`,
+3. **and** click **Arm live…** in the status bar and type `ENABLE LIVE` to confirm.
+
+```bash
+TRADING_MODE=live ALLOW_LIVE_TRADING=1 npm run dev
+```
+
+Live uses **separate Alpaca live keys** (from your live dashboard — different
+from paper keys), entered in the arm dialog and stored encrypted. When armed,
+the window shows a red frame and a **LIVE — REAL MONEY** indicator; **Disarm
+live** returns to paper instantly. Orders still pass the SafetyGate either way.
 
 ## Project layout
 
