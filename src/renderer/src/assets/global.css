@@ -277,28 +277,10 @@ button {
 .tool {
   cursor: pointer;
 }
-.chart__surface {
+.chart__container {
   flex: 1;
-  display: grid;
-  grid-template-rows: 1fr 0.28fr 0.28fr;
-  gap: 1px;
-  background: var(--border-soft);
   min-height: 0;
-}
-.chart__pane {
   position: relative;
-  background: linear-gradient(var(--bg), #0a0d10);
-  background-image: linear-gradient(var(--border-soft) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
-  background-size: 100% 40px, 80px 100%;
-}
-.pane-label {
-  position: absolute;
-  top: 8px;
-  left: 12px;
-  color: var(--text-faint);
-  font-size: 11px;
-  letter-spacing: 0.3px;
 }
 .chart__intervals {
   display: flex;
@@ -408,8 +390,3 @@ button {
   font-weight: 600;
 }
 
-.sparkline {
-  position: absolute;
-  inset: 0;
-  display: block;
-}

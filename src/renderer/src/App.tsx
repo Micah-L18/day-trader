@@ -5,7 +5,7 @@ import { changePct, useMarketStore } from '@renderer/state/marketStore'
 import { useWatchlistStore } from '@renderer/state/watchlistStore'
 import { useStreamBridge } from '@renderer/state/useStreamBridge'
 import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
-import { Sparkline } from '@renderer/components/Sparkline'
+import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
 import { pct, signedUsd, usd } from '@renderer/lib/format'
 
 /**
@@ -153,17 +153,9 @@ function LeftRail(): ReactElement {
 
 function ChartPanel(): ReactElement {
   const selected = useWatchlistStore((s) => s.selected)
-  const setBars = useMarketStore((s) => s.setBars)
-  const bars = useMarketStore((s) => (selected ? s.bars[selected] : undefined))
   const quotes = useMarketStore((s) => s.quotes)
   const opens = useMarketStore((s) => s.opens)
 
-  useEffect(() => {
-    if (!selected) return
-    void window.api.data.getBars(selected, '1Min', 120).then((b) => setBars(selected, b))
-  }, [selected, setBars])
-
-  const data = bars ? bars.map((b) => b.close) : []
   const q = selected ? quotes[selected] : undefined
   const last = q ? q.last ?? q.bid : undefined
   const chg = selected ? changePct(quotes, opens, selected) : 0
@@ -183,20 +175,7 @@ function ChartPanel(): ReactElement {
         </div>
       </div>
 
-      <div className="chart__surface">
-        <div className="chart__pane chart__pane--price">
-          <span className="pane-label">
-            {selected ?? ''} · live (Lightweight Charts candles land in Phase 2)
-          </span>
-          <Sparkline data={data} up={up} />
-        </div>
-        <div className="chart__pane chart__pane--volume">
-          <span className="pane-label">Volume</span>
-        </div>
-        <div className="chart__pane chart__pane--macd">
-          <span className="pane-label">MACD (12, 26, 9)</span>
-        </div>
-      </div>
+      <LightweightChart symbol={selected} />
 
       <div className="chart__intervals">
         {['1D', '1W', '1M', '3M', 'YTD', '1Y', '5Y', 'ALL'].map((i) => (
