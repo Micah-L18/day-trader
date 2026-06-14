@@ -37,6 +37,9 @@ export function OrderTicket(): ReactElement | null {
   }
 
   const onPointerDown = (e: ReactPointerEvent): void => {
+    // Don't start a drag when pressing a header button — capturing the pointer
+    // would swallow the button's click (pop-out / close).
+    if ((e.target as HTMLElement).closest('button')) return
     e.currentTarget.setPointerCapture(e.pointerId)
     drag.current = { sx: e.clientX, sy: e.clientY, bx: p.x, by: p.y }
   }
@@ -49,8 +52,11 @@ export function OrderTicket(): ReactElement | null {
     })
   }
   const onPointerUp = (e: ReactPointerEvent): void => {
+    const wasDragging = drag.current !== null
     drag.current = null
-    e.currentTarget.releasePointerCapture(e.pointerId)
+    if (wasDragging && e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
   }
 
   return (
