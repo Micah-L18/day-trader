@@ -1,6 +1,7 @@
 import { type ReactElement } from 'react'
 import type { OrderStatus } from '@shared/types'
 import { useAccountStore } from '@renderer/state/accountStore'
+import { PopOutButton } from '@renderer/components/PopOutButton'
 import { usd } from '@renderer/lib/format'
 
 const OPEN: ReadonlySet<OrderStatus> = new Set<OrderStatus>([
@@ -15,7 +16,10 @@ export function Orders(): ReactElement {
 
   return (
     <section className="rail-section">
-      <div className="rail-section__title">Recent orders</div>
+      <div className="rail-section__title">
+        Recent orders
+        <PopOutButton panel="orders" />
+      </div>
       {orders.length === 0 ? (
         <div className="empty">No orders.</div>
       ) : (

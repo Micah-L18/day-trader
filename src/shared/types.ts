@@ -200,3 +200,6 @@ export interface FlattenResult {
   canceled: number
   closed: number
 }
+
+/** Panels that can be popped out into their own OS window. */
+export type PanelKind = 'ticket' | 'chart' | 'watchlist' | 'positions' | 'orders'

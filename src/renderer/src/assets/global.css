@@ -206,6 +206,9 @@ button {
   justify-content: space-between;
 }
 .rail-section__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   color: var(--text-dim);
   font-weight: 600;
   margin-bottom: 10px;
@@ -476,6 +479,10 @@ button {
   font-weight: 600;
   touch-action: none;
 }
+.float-ticket__actions {
+  display: flex;
+  gap: 4px;
+}
 .float-ticket__close {
   background: transparent;
   border: none;
@@ -484,6 +491,47 @@ button {
 }
 .float-ticket__body {
   padding: 12px;
+}
+
+/* Pop-out (detach to its own window) button */
+.popout-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.popout-btn:hover {
+  color: var(--text);
+}
+
+/* ---------- Detached panel windows ---------- */
+.panel-window {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+.panel-pad {
+  padding: 12px;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  font-variant-numeric: tabular-nums;
+}
+.panel-head__sym {
+  font-weight: 700;
 }
 .seg--full {
   display: flex;

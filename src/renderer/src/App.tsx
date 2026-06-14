@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import type { ConnectionState, Position, TradingModeInfo } from '@shared/types'
+import type { ConnectionState, TradingModeInfo } from '@shared/types'
 import { useAccountStore } from '@renderer/state/accountStore'
 import { changePct, useMarketStore } from '@renderer/state/marketStore'
 import { useWatchlistStore } from '@renderer/state/watchlistStore'
@@ -11,7 +11,9 @@ import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
 import { SettingsModal } from '@renderer/panels/Settings/SettingsModal'
 import { OrderTicket } from '@renderer/panels/OrderTicket/OrderTicket'
 import { Orders } from '@renderer/panels/Orders/Orders'
+import { Positions } from '@renderer/panels/Positions/Positions'
 import { RiskBar } from '@renderer/panels/Risk/RiskBar'
+import { PopOutButton } from '@renderer/components/PopOutButton'
 import { pct, signedUsd, usd } from '@renderer/lib/format'
 
 /**
@@ -124,57 +126,6 @@ function AccountSummary(): ReactElement {
   )
 }
 
-function Positions(): ReactElement {
-  const positions = useAccountStore((s) => s.positions)
-
-  const close = (p: Position): void => {
-    void window.api.orders.submit({
-      symbol: p.symbol,
-      side: p.qty > 0 ? 'sell' : 'buy',
-      qty: Math.abs(p.qty),
-      type: 'market'
-    })
-  }
-
-  return (
-    <section className="rail-section rail-section--fill">
-      <div className="rail-section__title">Positions</div>
-      {positions.length === 0 ? (
-        <div className="empty">No positions.</div>
-      ) : (
-        <table className="postable">
-          <thead>
-            <tr>
-              <th>Symbol</th>
-              <th>Qty</th>
-              <th>Avg</th>
-              <th>P&amp;L</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {positions.map((p) => (
-              <tr key={p.symbol}>
-                <td className="postable__sym">{p.symbol}</td>
-                <td>{p.qty}</td>
-                <td>{usd(p.avgPrice)}</td>
-                <td className={p.unrealizedPnl >= 0 ? 'up' : 'down'}>
-                  {signedUsd(p.unrealizedPnl)}
-                </td>
-                <td>
-                  <button className="link-btn" onClick={() => close(p)}>
-                    close
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </section>
-  )
-}
-
 function LeftRail(): ReactElement {
   return (
     <aside className="leftrail">
@@ -207,7 +158,7 @@ function ChartPanel(): ReactElement {
         <div className="chart__tools">
           <span className="tool">＋ Indicators</span>
           <span className="tool">✎ Draw</span>
-          <span className="tool">⤢</span>
+          <PopOutButton panel="chart" symbol={selected} title="Pop chart into its own window" />
         </div>
       </div>
 

@@ -9,6 +9,7 @@ import type {
   FlattenResult,
   Order,
   OrderRequest,
+  PanelKind,
   Position,
   Quote,
   RiskDecision,
@@ -92,6 +93,11 @@ const api = {
       ipcRenderer.invoke('settings:save', input),
     testConnection: (creds?: AlpacaCredentials): Promise<TestConnectionResult> =>
       ipcRenderer.invoke('settings:testConnection', creds)
+  },
+
+  windows: {
+    open: (panel: PanelKind, params?: Record<string, string>): Promise<void> =>
+      ipcRenderer.invoke('windows:open', panel, params ?? {})
   }
 }
 

@@ -1,6 +1,7 @@
 import { type ReactElement } from 'react'
 import { useMarketStore, changePct } from '@renderer/state/marketStore'
 import { useWatchlistStore } from '@renderer/state/watchlistStore'
+import { PopOutButton } from '@renderer/components/PopOutButton'
 import { pct, usd } from '@renderer/lib/format'
 
 export function Watchlist(): ReactElement {
@@ -12,7 +13,10 @@ export function Watchlist(): ReactElement {
 
   return (
     <section className="rail-section">
-      <div className="rail-section__title">Watchlist</div>
+      <div className="rail-section__title">
+        Watchlist
+        <PopOutButton panel="watchlist" />
+      </div>
       <div className="watchlist">
         {symbols.map((sym) => {
           const q = quotes[sym]

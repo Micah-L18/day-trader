@@ -9,7 +9,8 @@ import { useRiskStore } from './riskStore'
  * Connects the preload `window.api` streams to the zustand stores. Mount once,
  * at the app root. Returns nothing — components read the stores directly.
  */
-export function useStreamBridge(): void {
+export function useStreamBridge(opts: { loadWatchlist?: boolean } = {}): void {
+  const loadWatchlist = opts.loadWatchlist ?? true
   useEffect(() => {
     const market = useMarketStore.getState()
     const account = useAccountStore.getState()
@@ -17,8 +18,9 @@ export function useStreamBridge(): void {
     const system = useSystemStore.getState()
     const risk = useRiskStore.getState()
 
-    // Initial snapshots.
-    void window.api.watchlist.get().then(watchlist.setSymbols)
+    // Initial snapshots. Panel windows seed their own symbol, so they skip the
+    // watchlist load (which would override the selection).
+    if (loadWatchlist) void window.api.watchlist.get().then(watchlist.setSymbols)
     void window.api.account.get().then(account.setAccount)
     void window.api.positions.get().then(account.setPositions)
     void window.api.orders.get().then(account.setOrders)

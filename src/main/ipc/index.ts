@@ -3,6 +3,7 @@ import {
   DEFAULT_WATCHLIST,
   type AlpacaCredentials,
   type OrderRequest,
+  type PanelKind,
   type SaveSettingsInput,
   type Timeframe
 } from '@shared/types'
@@ -12,6 +13,7 @@ import type { SafetyGate } from '../risk/safetyGate'
 import { loadCreds, saveCreds } from '../secrets/keychain'
 import { saveSettings } from '../settings'
 import { getSettingsInfo, testConnection } from '../settingsService'
+import { openPanelWindow } from '../windows'
 
 /**
  * Register all request/response IPC handlers. Every renderer capability is
@@ -51,6 +53,11 @@ export function registerIpc(manager: ProviderManager, config: AppConfig, gate: S
     return gate.getState()
   })
   ipcMain.handle('risk:flattenAll', () => gate.flattenAll())
+
+  // ---- Detached panel windows ----
+  ipcMain.handle('windows:open', (_e, panel: PanelKind, params?: Record<string, string>) => {
+    openPanelWindow(panel, params ?? {})
+  })
 
   // In-memory watchlist for Phase 1–3; persisted to SQLite in Phase 5.
   let watchlist: string[] = [...DEFAULT_WATCHLIST]
