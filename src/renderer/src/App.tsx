@@ -159,6 +159,8 @@ function ChartPanel(): ReactElement {
   const opens = useMarketStore((s) => s.opens)
   const interval = useChartStore((s) => s.interval)
   const setInterval = useChartStore((s) => s.setInterval)
+  const autoScale = useChartStore((s) => s.autoScale)
+  const setAutoScale = useChartStore((s) => s.setAutoScale)
 
   const q = selected ? quotes[selected] : undefined
   const last = q ? q.last ?? q.bid : undefined
@@ -179,9 +181,14 @@ function ChartPanel(): ReactElement {
         </div>
       </div>
 
-      <LightweightChart symbol={selected} interval={interval} />
+      <LightweightChart symbol={selected} interval={interval} autoScale={autoScale} />
 
-      <IntervalBar value={interval} onChange={setInterval} />
+      <IntervalBar
+        value={interval}
+        onChange={setInterval}
+        autoScale={autoScale}
+        onToggleAutoScale={() => setAutoScale(!autoScale)}
+      />
     </main>
   )
 }

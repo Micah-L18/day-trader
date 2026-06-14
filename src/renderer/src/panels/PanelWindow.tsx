@@ -16,6 +16,7 @@ import { pct, usd } from '@renderer/lib/format'
 export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: string | null }): ReactElement {
   useStreamBridge({ loadWatchlist: false })
   const [chartInterval, setChartInterval] = useState<Timeframe>('1Min')
+  const [chartAuto, setChartAuto] = useState(true)
 
   useEffect(() => {
     if (!symbol) return
@@ -38,8 +39,13 @@ export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: strin
       {panel === 'chart' && (
         <>
           <PanelHeader symbol={symbol} />
-          <LightweightChart symbol={symbol} interval={chartInterval} />
-          <IntervalBar value={chartInterval} onChange={setChartInterval} />
+          <LightweightChart symbol={symbol} interval={chartInterval} autoScale={chartAuto} />
+          <IntervalBar
+            value={chartInterval}
+            onChange={setChartInterval}
+            autoScale={chartAuto}
+            onToggleAutoScale={() => setChartAuto(!chartAuto)}
+          />
         </>
       )}
       {panel === 'watchlist' && (

@@ -28,10 +28,12 @@ const DOWN = '#ff5000'
  */
 export function LightweightChart({
   symbol,
-  interval
+  interval,
+  autoScale
 }: {
   symbol: string | null
   interval: Timeframe
+  autoScale: boolean
 }): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -41,6 +43,7 @@ export function LightweightChart({
   const signalRef = useRef<ISeriesApi<'Line'> | null>(null)
   const histRef = useRef<ISeriesApi<'Histogram'> | null>(null)
   const barsRef = useRef<Bar[]>([])
+  const autoScaleRef = useRef(autoScale)
 
   const quote = useMarketStore((s) => (symbol ? s.quotes[symbol] : undefined))
 
@@ -189,6 +192,13 @@ export function LightweightChart({
     }
   }, [symbol, interval, redraw])
 
+  // Auto-scale: keep the price axis fitted to the data and refit when toggled on.
+  useEffect(() => {
+    autoScaleRef.current = autoScale
+    candleRef.current?.priceScale().applyOptions({ autoScale })
+    if (autoScale) chartRef.current?.timeScale().fitContent()
+  }, [autoScale])
+
   // Aggregate live ticks into the current interval's forming bar.
   useEffect(() => {
     if (!quote || !symbol) return
@@ -208,7 +218,7 @@ export function LightweightChart({
     } else {
       return
     }
-    redraw(false)
+    redraw(autoScaleRef.current)
   }, [quote, symbol, interval, redraw])
 
   return <div ref={containerRef} className="chart__container" />

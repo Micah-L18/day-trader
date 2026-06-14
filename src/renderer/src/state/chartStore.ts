@@ -3,11 +3,15 @@ import type { Timeframe } from '@shared/types'
 
 interface ChartState {
   interval: Timeframe
+  autoScale: boolean
   setInterval: (tf: Timeframe) => void
+  setAutoScale: (on: boolean) => void
 }
 
-/** Active interval for the main chart (also driven by the cycle-interval hotkey). */
+/** Active interval + auto-scale for the main chart (also driven by hotkeys). */
 export const useChartStore = create<ChartState>((set) => ({
   interval: '1Min',
-  setInterval: (interval) => set({ interval })
+  autoScale: true,
+  setInterval: (interval) => set({ interval }),
+  setAutoScale: (autoScale) => set({ autoScale })
 }))
