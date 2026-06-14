@@ -9,6 +9,7 @@ import {
 } from '@shared/types'
 import { useStreamBridge } from '@renderer/state/useStreamBridge'
 import { useWatchlistStore } from '@renderer/state/watchlistStore'
+import { useDrawingStore } from '@renderer/state/drawingStore'
 import { changePct, useMarketStore } from '@renderer/state/marketStore'
 import { TicketForm } from '@renderer/panels/OrderTicket/TicketForm'
 import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
@@ -24,6 +25,7 @@ export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: strin
   const [interval, setInterval] = useState<Timeframe>('5Min')
   const [range, setRangeState] = useState<RangeKey>('1D')
   const [autoScale, setAutoScale] = useState(true)
+  const [drawMode, setDrawMode] = useState(false)
   const [indicators, setIndicators] = useState<IndicatorConfig>({ ...DEFAULT_INDICATORS })
 
   const setRange = (r: RangeKey): void => {
@@ -53,7 +55,25 @@ export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: strin
         <>
           <PanelHeader
             symbol={symbol}
-            tools={<IndicatorsMenu indicators={indicators} onToggle={toggleIndicator} />}
+            tools={
+              <>
+                <IndicatorsMenu indicators={indicators} onToggle={toggleIndicator} />
+                <span
+                  className={`tool ${drawMode ? 'tool--on' : ''}`}
+                  onClick={() => setDrawMode(!drawMode)}
+                  title="Click the chart to add a horizontal line"
+                >
+                  ✎
+                </span>
+                <span
+                  className="tool"
+                  onClick={() => symbol && useDrawingStore.getState().clear(symbol)}
+                  title="Clear lines"
+                >
+                  ⊘
+                </span>
+              </>
+            }
           />
           <LightweightChart
             symbol={symbol}
@@ -61,6 +81,7 @@ export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: strin
             range={range}
             autoScale={autoScale}
             indicators={indicators}
+            drawMode={drawMode}
           />
           <IntervalBar
             range={range}

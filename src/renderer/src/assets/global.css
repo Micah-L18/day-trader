@@ -324,6 +324,9 @@ button {
 .tool {
   cursor: pointer;
 }
+.tool--on {
+  color: var(--accent);
+}
 .chart__container {
   flex: 1;
   min-height: 0;

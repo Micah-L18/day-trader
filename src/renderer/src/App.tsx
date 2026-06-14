@@ -24,6 +24,7 @@ import { LayoutTabs } from '@renderer/components/LayoutTabs'
 import { RailResizer } from '@renderer/components/RailResizer'
 import { AccountSelector } from '@renderer/components/AccountSelector'
 import { useChartStore } from '@renderer/state/chartStore'
+import { useDrawingStore } from '@renderer/state/drawingStore'
 import { activeLayout, useLayoutStore } from '@renderer/state/layoutStore'
 import { usePortfolioStore } from '@renderer/state/portfolioStore'
 import { useLiveStore } from '@renderer/state/liveStore'
@@ -182,6 +183,8 @@ function ChartPanel(): ReactElement {
   const setRange = useChartStore((s) => s.setRange)
   const autoScale = useChartStore((s) => s.autoScale)
   const setAutoScale = useChartStore((s) => s.setAutoScale)
+  const drawMode = useChartStore((s) => s.drawMode)
+  const setDrawMode = useChartStore((s) => s.setDrawMode)
   const indicators = useChartStore((s) => s.indicators)
   const toggleIndicator = useChartStore((s) => s.toggleIndicator)
 
@@ -199,6 +202,20 @@ function ChartPanel(): ReactElement {
         </div>
         <div className="chart__tools">
           <IndicatorsMenu indicators={indicators} onToggle={toggleIndicator} />
+          <span
+            className={`tool ${drawMode ? 'tool--on' : ''}`}
+            onClick={() => setDrawMode(!drawMode)}
+            title="Click the chart to add a horizontal line"
+          >
+            ✎ Draw
+          </span>
+          <span
+            className="tool"
+            onClick={() => selected && useDrawingStore.getState().clear(selected)}
+            title="Clear lines"
+          >
+            ⊘
+          </span>
           <PopOutButton panel="chart" symbol={selected} title="Pop chart into its own window" />
         </div>
       </div>
@@ -209,6 +226,7 @@ function ChartPanel(): ReactElement {
         range={range}
         autoScale={autoScale}
         indicators={indicators}
+        drawMode={drawMode}
       />
 
       <IntervalBar

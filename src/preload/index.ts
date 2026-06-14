@@ -132,6 +132,12 @@ const api = {
     save: (state: LayoutsState): Promise<LayoutsState> => ipcRenderer.invoke('layouts:save', state)
   },
 
+  drawings: {
+    get: (): Promise<Record<string, number[]>> => ipcRenderer.invoke('drawings:get'),
+    set: (map: Record<string, number[]>): Promise<Record<string, number[]>> =>
+      ipcRenderer.invoke('drawings:set', map)
+  },
+
   onboarding: {
     get: (): Promise<boolean> => ipcRenderer.invoke('onboarding:get'),
     complete: (): Promise<boolean> => ipcRenderer.invoke('onboarding:complete')

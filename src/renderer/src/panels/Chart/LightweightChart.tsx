@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useRef, type ReactElement } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react'
 import {
   CandlestickSeries,
   CrosshairMode,
   HistogramSeries,
   LineSeries,
+  LineStyle,
   createChart,
   type CandlestickData,
   type HistogramData,
   type IChartApi,
+  type IPriceLine,
   type ISeriesApi,
   type LineData,
   type UTCTimestamp
@@ -27,6 +29,7 @@ import { rsi } from '@shared/indicators/rsi'
 import { vwap } from '@shared/indicators/vwap'
 import { bbands } from '@shared/indicators/bbands'
 import { useMarketStore } from '@renderer/state/marketStore'
+import { useDrawingStore } from '@renderer/state/drawingStore'
 
 const toTime = (ms: number): UTCTimestamp => Math.floor(ms / 1000) as UTCTimestamp
 const UP = '#00c805'
@@ -64,21 +67,28 @@ export function LightweightChart({
   interval,
   range,
   autoScale,
-  indicators
+  indicators,
+  drawMode
 }: {
   symbol: string | null
   interval: Timeframe
   range: RangeKey
   autoScale: boolean
   indicators: IndicatorConfig
+  drawMode: boolean
 }): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ChartSeries | null>(null)
   const barsRef = useRef<Bar[]>([])
   const autoScaleRef = useRef(autoScale)
+  const drawModeRef = useRef(drawMode)
+  const symbolRef = useRef(symbol)
+  const priceLinesRef = useRef<IPriceLine[]>([])
+  const [chartTick, setChartTick] = useState(0)
 
   const quote = useMarketStore((s) => (symbol ? s.quotes[symbol] : undefined))
+  const drawings = useDrawingStore((s) => (symbol ? s.bySymbol[symbol] : undefined))
   const indKey = JSON.stringify(indicators)
 
   const redraw = useCallback((fit: boolean): void => {
@@ -204,17 +214,54 @@ export function LightweightChart({
       chart.priceScale('right').applyOptions({ autoScale: autoScaleRef.current })
       chartRef.current = chart
       seriesRef.current = s
+      chart.subscribeClick((param) => {
+        if (!drawModeRef.current || !param.point) return
+        const sym = symbolRef.current
+        const price = sym ? seriesRef.current?.candle.coordinateToPrice(param.point.y) : null
+        if (sym && price != null) useDrawingStore.getState().addLine(sym, price)
+      })
       redraw(true)
+      setChartTick((t) => t + 1)
     } catch (err) {
       console.error('LightweightChart init failed:', err)
     }
 
     return () => {
+      priceLinesRef.current = []
       chart?.remove()
       chartRef.current = null
       seriesRef.current = null
     }
   }, [indKey, redraw])
+
+  useEffect(() => {
+    drawModeRef.current = drawMode
+  }, [drawMode])
+  useEffect(() => {
+    symbolRef.current = symbol
+  }, [symbol])
+
+  // Render the symbol's horizontal lines on the candle series.
+  useEffect(() => {
+    const candle = seriesRef.current?.candle
+    if (!candle) return
+    for (const pl of priceLinesRef.current) {
+      try {
+        candle.removePriceLine(pl)
+      } catch {
+        /* line belonged to a removed series */
+      }
+    }
+    priceLinesRef.current = (drawings ?? []).map((price) =>
+      candle.createPriceLine({
+        price,
+        color: '#e6edf3',
+        lineWidth: 1,
+        lineStyle: LineStyle.Dashed,
+        axisLabelVisible: true
+      })
+    )
+  }, [symbol, drawings, chartTick])
 
   // Load history on symbol / interval / range change.
   useEffect(() => {

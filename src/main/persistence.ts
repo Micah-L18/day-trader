@@ -100,6 +100,14 @@ export function savePortfolios(state: PortfoliosState): void {
   writeJson('portfolios.json', state)
 }
 
+export function loadDrawings(): Record<string, number[]> {
+  return readJson<Record<string, number[]>>('drawings.json', {})
+}
+
+export function saveDrawings(map: Record<string, number[]>): void {
+  writeJson('drawings.json', map)
+}
+
 export function loadRiskLimits(): RiskLimits {
   return readJson<RiskLimits>('risk.json', { ...DEFAULT_RISK_LIMITS })
 }

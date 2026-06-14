@@ -5,6 +5,7 @@ import { useWatchlistStore } from './watchlistStore'
 import { useSystemStore } from './systemStore'
 import { useRiskStore } from './riskStore'
 import { useLiveStore } from './liveStore'
+import { useDrawingStore } from './drawingStore'
 
 /**
  * Connects the preload `window.api` streams to the zustand stores. Mount once,
@@ -28,6 +29,7 @@ export function useStreamBridge(opts: { loadWatchlist?: boolean } = {}): void {
     void window.api.status.get().then(system.setStatus)
     void window.api.risk.getState().then(risk.setRisk)
     void window.api.live.getState().then(liveStore.setLive)
+    void useDrawingStore.getState().load()
 
     // Live subscriptions.
     const unsubs = [

@@ -31,8 +31,10 @@ import {
   isOnboarded,
   loadKeymap,
   loadLayouts,
+  loadDrawings,
   loadPortfolios,
   loadWatchlists,
+  saveDrawings,
   saveKeymap,
   saveLayouts,
   savePortfolios,
@@ -118,6 +120,13 @@ export function registerIpc(
   ipcMain.handle('layouts:save', (_e, state: LayoutsState) => {
     saveLayouts(state)
     return state
+  })
+
+  // Chart drawings (horizontal lines, keyed by symbol).
+  ipcMain.handle('drawings:get', () => loadDrawings())
+  ipcMain.handle('drawings:set', (_e, map: Record<string, number[]>) => {
+    saveDrawings(map)
+    return map
   })
 
   // First-run onboarding flag.
