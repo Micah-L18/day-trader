@@ -171,6 +171,17 @@ export const DEFAULT_WATCHLIST = [
   'META'
 ] as const
 
+export interface SymbolList {
+  id: string
+  name: string
+  symbols: string[]
+}
+
+export interface WatchlistsState {
+  lists: SymbolList[]
+  activeId: string
+}
+
 export interface TradingModeInfo {
   mode: TradingMode
   liveAllowed: boolean

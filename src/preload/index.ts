@@ -24,7 +24,8 @@ import type {
   TestConnectionResult,
   Timeframe,
   TradingModeInfo,
-  Trade
+  Trade,
+  WatchlistsState
 } from '@shared/types'
 
 /** Subscribe to a main→renderer push channel; returns an unsubscribe fn. */
@@ -81,9 +82,10 @@ const api = {
     onUpdate: (cb: (s: RiskState) => void): (() => void) => on<RiskState>('stream:risk', cb)
   },
 
-  watchlist: {
-    get: (): Promise<string[]> => ipcRenderer.invoke('watchlist:get'),
-    set: (symbols: string[]): Promise<string[]> => ipcRenderer.invoke('watchlist:set', symbols)
+  watchlists: {
+    get: (): Promise<WatchlistsState> => ipcRenderer.invoke('watchlists:get'),
+    set: (state: WatchlistsState): Promise<WatchlistsState> =>
+      ipcRenderer.invoke('watchlists:set', state)
   },
 
   status: {

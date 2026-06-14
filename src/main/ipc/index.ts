@@ -10,7 +10,8 @@ import {
   type OrderRequest,
   type PanelKind,
   type SaveSettingsInput,
-  type Timeframe
+  type Timeframe,
+  type WatchlistsState
 } from '@shared/types'
 import type { AppConfig } from '../config'
 import type { ProviderManager } from '../providerManager'
@@ -23,13 +24,14 @@ import { openPanelWindow } from '../windows'
 import { liveState } from '../liveState'
 import { evaluateArm } from '../risk/liveGate'
 import {
+  allWatchlistSymbols,
   isOnboarded,
   loadKeymap,
   loadLayouts,
-  loadWatchlist,
+  loadWatchlists,
   saveKeymap,
   saveLayouts,
-  saveWatchlist,
+  saveWatchlists,
   setOnboarded
 } from '../persistence'
 
@@ -82,13 +84,12 @@ export function registerIpc(
     openPanelWindow(panel, params ?? {})
   })
 
-  // Watchlist (persisted to JSON in userData).
-  ipcMain.handle('watchlist:get', () => loadWatchlist())
-  ipcMain.handle('watchlist:set', (_e, list: string[]) => {
-    const normalized = list.map((s) => s.toUpperCase())
-    saveWatchlist(normalized)
-    manager.subscribe(normalized)
-    return normalized
+  // Watchlists (multiple named lists, persisted to JSON in userData).
+  ipcMain.handle('watchlists:get', () => loadWatchlists())
+  ipcMain.handle('watchlists:set', (_e, state: WatchlistsState) => {
+    saveWatchlists(state)
+    manager.subscribe(allWatchlistSymbols(state))
+    return state
   })
 
   // Hotkeys (persisted to JSON in userData).

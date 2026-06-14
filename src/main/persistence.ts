@@ -1,7 +1,13 @@
 import { app } from 'electron'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { DEFAULT_KEYMAP, DEFAULT_WATCHLIST, type Keymap, type LayoutsState } from '@shared/types'
+import {
+  DEFAULT_KEYMAP,
+  DEFAULT_WATCHLIST,
+  type Keymap,
+  type LayoutsState,
+  type WatchlistsState
+} from '@shared/types'
 
 const filePath = (name: string): string => join(app.getPath('userData'), name)
 
@@ -30,15 +36,31 @@ export function saveKeymap(keymap: Keymap): void {
   writeJson('keymap.json', keymap)
 }
 
-export function loadWatchlist(): string[] {
-  const data = readJson<{ symbols: string[] }>('watchlist.json', { symbols: [...DEFAULT_WATCHLIST] })
-  return Array.isArray(data.symbols) && data.symbols.length > 0
-    ? data.symbols.map((s) => s.toUpperCase())
-    : [...DEFAULT_WATCHLIST]
+const DEFAULT_WATCHLISTS: WatchlistsState = {
+  lists: [{ id: 'default', name: 'Watchlist', symbols: [...DEFAULT_WATCHLIST] }],
+  activeId: 'default'
 }
 
-export function saveWatchlist(symbols: string[]): void {
-  writeJson('watchlist.json', { symbols })
+export function loadWatchlists(): WatchlistsState {
+  // Prefer the multi-list file; migrate the old single-list watchlist.json if present.
+  const multi = readJson<Partial<WatchlistsState>>('watchlists.json', {})
+  if (Array.isArray(multi.lists) && multi.lists.length > 0) {
+    return { lists: multi.lists, activeId: multi.activeId ?? multi.lists[0].id }
+  }
+  const legacy = readJson<{ symbols?: string[] }>('watchlist.json', {})
+  if (Array.isArray(legacy.symbols) && legacy.symbols.length > 0) {
+    return { lists: [{ id: 'default', name: 'Watchlist', symbols: legacy.symbols }], activeId: 'default' }
+  }
+  return { lists: DEFAULT_WATCHLISTS.lists.map((l) => ({ ...l })), activeId: 'default' }
+}
+
+export function saveWatchlists(state: WatchlistsState): void {
+  writeJson('watchlists.json', state)
+}
+
+/** All symbols across every list — what the app subscribes to. */
+export function allWatchlistSymbols(state: WatchlistsState): string[] {
+  return [...new Set(state.lists.flatMap((l) => l.symbols.map((s) => s.toUpperCase())))]
 }
 
 const DEFAULT_LAYOUTS: LayoutsState = {

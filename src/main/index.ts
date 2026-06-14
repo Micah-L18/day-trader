@@ -8,7 +8,7 @@ import { ProviderManager, type BuildProviders } from './providerManager'
 import { registerIpc } from './ipc'
 import { loadSettings } from './settings'
 import { loadCreds } from './secrets/keychain'
-import { loadWatchlist } from './persistence'
+import { allWatchlistSymbols, loadWatchlists } from './persistence'
 import { createJournal } from './journal'
 import { SafetyGate } from './risk/safetyGate'
 import { loadRenderer, registerAppScheme, setupRendererProtocol } from './appProtocol'
@@ -101,7 +101,7 @@ app.whenReady().then(() => {
   })
 
   registerIpc(mgr, config, gate, journal)
-  mgr.subscribe(loadWatchlist())
+  mgr.subscribe(allWatchlistSymbols(loadWatchlists()))
 
   // Global panic-flatten (works even when another app is focused).
   globalShortcut.register(PANIC_ACCELERATOR, () => {

@@ -35,9 +35,7 @@ export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: strin
 
   useEffect(() => {
     if (!symbol) return
-    const w = useWatchlistStore.getState()
-    w.setSymbols([symbol])
-    w.select(symbol)
+    useWatchlistStore.getState().select(symbol)
     void window.api.data.subscribe([symbol])
   }, [symbol])
 

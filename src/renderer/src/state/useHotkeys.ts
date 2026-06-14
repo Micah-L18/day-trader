@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { CHART_INTERVALS, type HotkeyAction, type OrderStatus } from '@shared/types'
 import { useKeymapStore } from './keymapStore'
 import { useTicketStore } from './ticketStore'
-import { useWatchlistStore } from './watchlistStore'
+import { activeSymbols, useWatchlistStore } from './watchlistStore'
 import { useRiskStore } from './riskStore'
 import { useAccountStore } from './accountStore'
 import { useSystemStore } from './systemStore'
@@ -28,10 +28,11 @@ function isEditable(target: EventTarget | null): boolean {
 }
 
 function cycleSymbol(dir: 1 | -1): void {
-  const { symbols, selected, select } = useWatchlistStore.getState()
+  const st = useWatchlistStore.getState()
+  const symbols = activeSymbols(st)
   if (symbols.length === 0) return
-  const idx = selected ? symbols.indexOf(selected) : -1
-  select(symbols[(idx + dir + symbols.length) % symbols.length])
+  const idx = st.selected ? symbols.indexOf(st.selected) : -1
+  st.select(symbols[(idx + dir + symbols.length) % symbols.length])
 }
 
 function cycleInterval(): void {

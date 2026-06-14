@@ -15,14 +15,13 @@ export function useStreamBridge(opts: { loadWatchlist?: boolean } = {}): void {
   useEffect(() => {
     const market = useMarketStore.getState()
     const account = useAccountStore.getState()
-    const watchlist = useWatchlistStore.getState()
     const system = useSystemStore.getState()
     const risk = useRiskStore.getState()
     const liveStore = useLiveStore.getState()
 
     // Initial snapshots. Panel windows seed their own symbol, so they skip the
     // watchlist load (which would override the selection).
-    if (loadWatchlist) void window.api.watchlist.get().then(watchlist.setSymbols)
+    if (loadWatchlist) void useWatchlistStore.getState().load()
     void window.api.account.get().then(account.setAccount)
     void window.api.positions.get().then(account.setPositions)
     void window.api.orders.get().then(account.setOrders)
