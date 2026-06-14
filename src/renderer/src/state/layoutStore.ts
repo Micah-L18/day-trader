@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { Layout, LayoutsState, WidgetItem, WidgetType } from '@shared/types'
+import { nextSpot } from '@renderer/lib/grid'
 import { useChartStore } from './chartStore'
 
 interface LayoutStoreState extends LayoutsState {
@@ -10,7 +11,7 @@ interface LayoutStoreState extends LayoutsState {
   remove: (id: string) => void
   rename: (id: string, name: string) => void
   updateActive: (patch: Partial<Layout>) => void
-  setWidget: (i: string, patch: Partial<WidgetItem>) => void
+  setWidgets: (widgets: WidgetItem[]) => void
   addWidget: (type: WidgetType) => void
   removeWidget: (i: string) => void
 }
@@ -94,14 +95,15 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
     persist(false)
   },
 
-  setWidget: (i, patch) => {
-    const widgets = activeWidgets(get()).map((w) => (w.i === i ? { ...w, ...patch } : w))
+  setWidgets: (widgets) => {
     get().updateActive({ widgets })
   },
 
   addWidget: (type) => {
-    const widget: WidgetItem = { i: uid(), type, x: 48, y: 48, w: 360, h: 280 }
-    get().updateActive({ widgets: [...activeWidgets(get()), widget] })
+    const widgets = activeWidgets(get())
+    const { x, y } = nextSpot(widgets)
+    const widget: WidgetItem = { i: uid(), type, x, y, w: 4, h: 6 }
+    get().updateActive({ widgets: [...widgets, widget] })
   },
 
   removeWidget: (i) => {

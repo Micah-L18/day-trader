@@ -6,6 +6,7 @@ import {
   DEFAULT_RISK_LIMITS,
   DEFAULT_WATCHLIST,
   DEFAULT_WIDGETS,
+  GRID_COLS,
   type Keymap,
   type LayoutsState,
   type PortfoliosState,
@@ -74,12 +75,17 @@ const DEFAULT_LAYOUTS: LayoutsState = {
   activeId: 'default'
 }
 
+// Grid widgets keep w within the column count; legacy pixel widgets (w in the
+// hundreds) must be reset to fresh grid defaults.
+const isGridWidgets = (ws: LayoutsState['layouts'][number]['widgets']): boolean =>
+  !!ws && ws.length > 0 && ws.every((w) => w.w <= GRID_COLS && w.x <= GRID_COLS)
+
 export function loadLayouts(): LayoutsState {
   const data = readJson<LayoutsState>('layouts.json', DEFAULT_LAYOUTS)
   if (!data.layouts || data.layouts.length === 0) return DEFAULT_LAYOUTS
-  // Migrate older layouts that predate widgets.
+  // Migrate layouts that predate widgets or used the old pixel coordinates.
   const layouts = data.layouts.map((l) =>
-    l.widgets && l.widgets.length > 0 ? l : { ...l, widgets: freshWidgets() }
+    isGridWidgets(l.widgets) ? l : { ...l, widgets: freshWidgets() }
   )
   return { layouts, activeId: data.activeId ?? layouts[0].id }
 }

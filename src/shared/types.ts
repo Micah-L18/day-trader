@@ -357,6 +357,9 @@ export type PanelKind = 'ticket' | 'chart' | 'watchlist' | 'positions' | 'orders
 
 export type WidgetType = 'chart' | 'watchlist' | 'positions' | 'orders' | 'account'
 
+/** Widget geometry is expressed in GRID UNITS (columns/rows), not pixels — the
+ * board snaps to a `GRID_COLS`-wide column grid so widgets tile without
+ * overlapping. x/w are columns (0..GRID_COLS); y/h are rows (unbounded). */
 export interface WidgetItem {
   i: string
   type: WidgetType
@@ -365,6 +368,8 @@ export interface WidgetItem {
   w: number
   h: number
 }
+
+export const GRID_COLS = 12
 
 export interface Layout {
   id: string
@@ -375,11 +380,11 @@ export interface Layout {
 }
 
 export const DEFAULT_WIDGETS: WidgetItem[] = [
-  { i: 'account', type: 'account', x: 0, y: 0, w: 300, h: 150 },
-  { i: 'watchlist', type: 'watchlist', x: 0, y: 158, w: 300, h: 392 },
-  { i: 'chart', type: 'chart', x: 308, y: 0, w: 860, h: 440 },
-  { i: 'positions', type: 'positions', x: 308, y: 448, w: 540, h: 200 },
-  { i: 'orders', type: 'orders', x: 856, y: 448, w: 312, h: 200 }
+  { i: 'account', type: 'account', x: 0, y: 0, w: 3, h: 5 },
+  { i: 'watchlist', type: 'watchlist', x: 0, y: 5, w: 3, h: 13 },
+  { i: 'chart', type: 'chart', x: 3, y: 0, w: 9, h: 13 },
+  { i: 'positions', type: 'positions', x: 3, y: 13, w: 6, h: 5 },
+  { i: 'orders', type: 'orders', x: 9, y: 13, w: 3, h: 5 }
 ]
 
 export const WIDGET_LABELS: Record<WidgetType, string> = {

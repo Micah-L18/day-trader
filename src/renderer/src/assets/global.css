@@ -1020,6 +1020,7 @@ button {
 .widgetboard {
   position: absolute;
   inset: 0;
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
 }
 .widgetboard__empty {
   position: absolute;
@@ -1038,6 +1039,13 @@ button {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  transition: left 0.12s ease, top 0.12s ease, width 0.12s ease, height 0.12s ease;
+}
+.widget--active {
+  transition: none;
+  z-index: 20;
+  border-color: var(--accent);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 .widget__head {
   display: flex;
