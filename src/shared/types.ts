@@ -203,3 +203,34 @@ export interface FlattenResult {
 
 /** Panels that can be popped out into their own OS window. */
 export type PanelKind = 'ticket' | 'chart' | 'watchlist' | 'positions' | 'orders'
+
+// ---- Hotkeys ----
+
+export type HotkeyAction =
+  | 'openBuy'
+  | 'openSell'
+  | 'flatten'
+  | 'killSwitch'
+  | 'cancelAll'
+  | 'nextSymbol'
+  | 'prevSymbol'
+  | 'focusSearch'
+  | 'popoutChart'
+  | 'openSettings'
+
+/** Binding strings: lowercase, modifiers first in mod+alt+shift order, e.g.
+ * "b", "shift+f", "mod+,". `mod` = ⌘ on macOS / Ctrl elsewhere. */
+export type Keymap = Record<HotkeyAction, string>
+
+export const DEFAULT_KEYMAP: Keymap = {
+  openBuy: 'b',
+  openSell: 's',
+  flatten: 'shift+f',
+  killSwitch: 'shift+k',
+  cancelAll: 'shift+c',
+  nextSymbol: ']',
+  prevSymbol: '[',
+  focusSearch: '/',
+  popoutChart: 'shift+p',
+  openSettings: 'mod+,'
+}

@@ -7,6 +7,7 @@ import type {
   BarUpdate,
   ConnectionStatus,
   FlattenResult,
+  Keymap,
   Order,
   OrderRequest,
   PanelKind,
@@ -98,6 +99,11 @@ const api = {
   windows: {
     open: (panel: PanelKind, params?: Record<string, string>): Promise<void> =>
       ipcRenderer.invoke('windows:open', panel, params ?? {})
+  },
+
+  hotkeys: {
+    get: (): Promise<Keymap> => ipcRenderer.invoke('hotkeys:get'),
+    save: (keymap: Keymap): Promise<Keymap> => ipcRenderer.invoke('hotkeys:save', keymap)
   }
 }
 

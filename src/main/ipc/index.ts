@@ -1,7 +1,7 @@
 import { app, ipcMain } from 'electron'
 import {
-  DEFAULT_WATCHLIST,
   type AlpacaCredentials,
+  type Keymap,
   type OrderRequest,
   type PanelKind,
   type SaveSettingsInput,
@@ -14,6 +14,7 @@ import { loadCreds, saveCreds } from '../secrets/keychain'
 import { saveSettings } from '../settings'
 import { getSettingsInfo, testConnection } from '../settingsService'
 import { openPanelWindow } from '../windows'
+import { loadKeymap, loadWatchlist, saveKeymap, saveWatchlist } from '../persistence'
 
 /**
  * Register all request/response IPC handlers. Every renderer capability is
@@ -59,13 +60,20 @@ export function registerIpc(manager: ProviderManager, config: AppConfig, gate: S
     openPanelWindow(panel, params ?? {})
   })
 
-  // In-memory watchlist for Phase 1–3; persisted to SQLite in Phase 5.
-  let watchlist: string[] = [...DEFAULT_WATCHLIST]
-  ipcMain.handle('watchlist:get', () => watchlist)
+  // Watchlist (persisted to JSON in userData).
+  ipcMain.handle('watchlist:get', () => loadWatchlist())
   ipcMain.handle('watchlist:set', (_e, list: string[]) => {
-    watchlist = list.map((s) => s.toUpperCase())
-    manager.subscribe(watchlist)
-    return watchlist
+    const normalized = list.map((s) => s.toUpperCase())
+    saveWatchlist(normalized)
+    manager.subscribe(normalized)
+    return normalized
+  })
+
+  // Hotkeys (persisted to JSON in userData).
+  ipcMain.handle('hotkeys:get', () => loadKeymap())
+  ipcMain.handle('hotkeys:save', (_e, keymap: Keymap) => {
+    saveKeymap(keymap)
+    return keymap
   })
 
   // ---- Settings ----

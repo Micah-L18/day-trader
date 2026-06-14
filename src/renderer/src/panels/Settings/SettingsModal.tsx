@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import type { ProviderKind, SettingsInfo, TestConnectionResult } from '@shared/types'
+import type { HotkeyAction, Keymap, ProviderKind, SettingsInfo, TestConnectionResult } from '@shared/types'
 import { useSystemStore } from '@renderer/state/systemStore'
+import { useKeymapStore } from '@renderer/state/keymapStore'
+import { HOTKEY_ITEMS, eventToBinding, prettyBinding } from '@renderer/lib/hotkeys'
 
 export function SettingsModal(): ReactElement | null {
   const open = useSystemStore((s) => s.settingsOpen)
@@ -13,6 +15,10 @@ export function SettingsModal(): ReactElement | null {
   const [test, setTest] = useState<TestConnectionResult | null>(null)
   const [busy, setBusy] = useState(false)
 
+  const keymap = useKeymapStore((s) => s.keymap)
+  const setKeymap = useKeymapStore((s) => s.setKeymap)
+  const [capturing, setCapturing] = useState<HotkeyAction | null>(null)
+
   useEffect(() => {
     if (!open) return
     setTest(null)
@@ -23,6 +29,31 @@ export function SettingsModal(): ReactElement | null {
       setProvider(i.provider)
     })
   }, [open])
+
+  // While rebinding, capture the next key combo (capture phase, so it pre-empts
+  // the global hotkey handler).
+  useEffect(() => {
+    if (!capturing) return
+    const onKey = (e: KeyboardEvent): void => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (e.key === 'Escape') {
+        setCapturing(null)
+        return
+      }
+      const binding = eventToBinding(e)
+      if (!binding) return
+      const next: Keymap = { ...keymap }
+      for (const a of Object.keys(next) as HotkeyAction[]) {
+        if (next[a] === binding) next[a] = '' // a binding maps to one action
+      }
+      next[capturing] = binding
+      void window.api.hotkeys.save(next).then(setKeymap)
+      setCapturing(null)
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [capturing, keymap, setKeymap])
 
   if (!open) return null
 
@@ -112,6 +143,27 @@ export function SettingsModal(): ReactElement | null {
           )}
           <div className="modal__hint">
             Free paper keys at alpaca.markets. Stored encrypted in your OS keychain. Paper-only.
+          </div>
+        </div>
+
+        <div className="modal__section">
+          <div className="modal__label">Hotkeys</div>
+          <div className="keymap">
+            {HOTKEY_ITEMS.map(({ action, label }) => (
+              <div className="keymap__row" key={action}>
+                <span>{label}</span>
+                <button
+                  className={`keymap__key ${capturing === action ? 'keymap__key--capturing' : ''}`}
+                  onClick={() => setCapturing(action)}
+                >
+                  {capturing === action ? 'press keys…' : prettyBinding(keymap[action])}
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="modal__hint">
+            Click a shortcut, then press the new combo (Esc cancels). Shortcuts pause while typing in
+            a field. Global: ⌘⇧⌫ flattens everything from anywhere.
           </div>
         </div>
 

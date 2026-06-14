@@ -6,6 +6,7 @@ import { useWatchlistStore } from '@renderer/state/watchlistStore'
 import { useSystemStore } from '@renderer/state/systemStore'
 import { useTicketStore } from '@renderer/state/ticketStore'
 import { useStreamBridge } from '@renderer/state/useStreamBridge'
+import { useHotkeys } from '@renderer/state/useHotkeys'
 import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
 import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
 import { SettingsModal } from '@renderer/panels/Settings/SettingsModal'
@@ -23,6 +24,7 @@ import { pct, signedUsd, usd } from '@renderer/lib/format'
  */
 function App(): ReactElement {
   useStreamBridge()
+  useHotkeys()
 
   return (
     <div className="app">

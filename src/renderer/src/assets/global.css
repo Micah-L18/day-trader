@@ -351,10 +351,42 @@ button {
 .modal {
   width: 460px;
   max-width: calc(100vw - 40px);
+  max-height: 86vh;
+  overflow-y: auto;
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* Hotkeys editor */
+.keymap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.keymap__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.keymap__key {
+  min-width: 84px;
+  text-align: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.keymap__key:hover {
+  border-color: var(--accent);
+}
+.keymap__key--capturing {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .modal__head {
   display: flex;
@@ -683,7 +715,25 @@ button {
   flex-direction: column;
   gap: 1px;
 }
+.wl-search {
+  width: 100%;
+  margin-bottom: 8px;
+}
 .wl-row {
+  display: flex;
+  align-items: center;
+  border-radius: 5px;
+}
+.wl-row:hover {
+  background: var(--bg-elev);
+}
+.wl-row--active {
+  background: var(--bg-elev);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.wl-main {
+  flex: 1;
+  min-width: 0;
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: 10px;
@@ -695,12 +745,19 @@ button {
   text-align: left;
   color: var(--text);
 }
-.wl-row:hover {
-  background: var(--bg-elev);
+.wl-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  padding: 0 8px;
+  font-size: 15px;
+  opacity: 0;
 }
-.wl-row--active {
-  background: var(--bg-elev);
-  box-shadow: inset 2px 0 0 var(--accent);
+.wl-row:hover .wl-remove {
+  opacity: 1;
+}
+.wl-remove:hover {
+  color: var(--down);
 }
 .wl-sym {
   font-weight: 600;

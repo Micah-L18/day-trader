@@ -1,15 +1,19 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, globalShortcut } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { DEFAULT_WATCHLIST, type ProviderKind } from '@shared/types'
+import type { ProviderKind } from '@shared/types'
 import { loadConfig } from './config'
 import { createProviders } from './providers'
 import { ProviderManager, type BuildProviders } from './providerManager'
 import { registerIpc } from './ipc'
 import { loadSettings } from './settings'
 import { loadCreds } from './secrets/keychain'
+import { loadWatchlist } from './persistence'
 import { createJournal } from './journal'
 import { SafetyGate } from './risk/safetyGate'
+
+/** System-wide panic key: flatten everything even when the app isn't focused. */
+const PANIC_ACCELERATOR = 'CommandOrControl+Shift+Backspace'
 
 const config = loadConfig()
 let manager: ProviderManager | null = null
@@ -85,7 +89,12 @@ app.whenReady().then(() => {
   })
 
   registerIpc(mgr, config, gate)
-  mgr.subscribe([...DEFAULT_WATCHLIST])
+  mgr.subscribe(loadWatchlist())
+
+  // Global panic-flatten (works even when another app is focused).
+  globalShortcut.register(PANIC_ACCELERATOR, () => {
+    void gate.flattenAll()
+  })
 
   createWindow()
 
@@ -99,5 +108,6 @@ app.on('window-all-closed', () => {
 })
 
 app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
   manager?.stop()
 })
