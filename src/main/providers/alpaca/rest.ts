@@ -5,8 +5,15 @@ import type {
   Order,
   OrderRequest,
   Position,
+  Snapshot,
   Timeframe
 } from '@shared/types'
+
+interface AlpacaSnapshot {
+  latestTrade?: { p: number }
+  dailyBar?: { o: number; c: number; v: number }
+  prevDailyBar?: { c: number }
+}
 import { alpacaEndpoints, type AlpacaEndpoints } from './endpoints'
 import { TIMEFRAME_MS } from '@shared/types'
 import {
@@ -86,6 +93,26 @@ export class AlpacaRest {
     const bars = (data.bars ?? []).map((b) => mapBar(symbol.toUpperCase(), b))
     bars.reverse() // newest-first from the API → oldest-first for the chart
     return bars
+  }
+
+  async getSnapshots(symbols: string[]): Promise<Snapshot[]> {
+    if (symbols.length === 0) return []
+    const url =
+      `${this.ep.data}/v2/stocks/snapshots` +
+      `?symbols=${encodeURIComponent(symbols.join(','))}&feed=${this.ep.feed}`
+    const data = await this.request<Record<string, AlpacaSnapshot>>(url)
+    const out: Snapshot[] = []
+    for (const [symbol, snap] of Object.entries(data)) {
+      const price = snap.latestTrade?.p ?? snap.dailyBar?.c ?? 0
+      const ref = snap.prevDailyBar?.c ?? snap.dailyBar?.o ?? price
+      out.push({
+        symbol,
+        price,
+        changePct: ref > 0 ? ((price - ref) / ref) * 100 : 0,
+        volume: snap.dailyBar?.v ?? 0
+      })
+    }
+    return out
   }
 
   async submitOrder(req: OrderRequest): Promise<Order> {

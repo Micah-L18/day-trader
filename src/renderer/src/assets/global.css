@@ -522,6 +522,36 @@ button {
   gap: 8px;
   padding: 14px 18px;
 }
+
+/* Screener */
+.modal--wide {
+  width: 660px;
+}
+.screener__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.screener__filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.screener__filters .field--sm {
+  width: 96px;
+}
+.screener__results {
+  max-height: 52vh;
+  overflow-y: auto;
+  padding: 4px 18px 16px;
+}
+.screener__results .postable th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+}
 .btn--primary {
   background: var(--accent);
   border-color: var(--accent);

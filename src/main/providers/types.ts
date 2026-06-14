@@ -6,6 +6,7 @@ import type {
   OrderRequest,
   Position,
   Quote,
+  Snapshot,
   Timeframe,
   Trade
 } from '@shared/types'
@@ -33,6 +34,8 @@ export interface MarketDataProvider {
   subscribe(symbols: string[]): void
   unsubscribe(symbols: string[]): void
   getBars(symbol: string, timeframe: Timeframe, limit: number): Promise<Bar[]>
+  /** One-shot snapshots (price / % change / volume) for the screener. */
+  getSnapshots(symbols: string[]): Promise<Snapshot[]>
   on<K extends keyof MarketDataEvents>(
     event: K,
     cb: (payload: MarketDataEvents[K]) => void

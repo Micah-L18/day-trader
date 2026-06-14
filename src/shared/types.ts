@@ -182,6 +182,23 @@ export interface WatchlistsState {
   activeId: string
 }
 
+/** A one-shot market snapshot used by the screener. */
+export interface Snapshot {
+  symbol: string
+  price: number
+  changePct: number
+  volume: number
+}
+
+/** Candidate universe the screener scans. */
+export const SCREENER_UNIVERSE = [
+  'AAPL', 'MSFT', 'NVDA', 'AMZN', 'META', 'GOOGL', 'TSLA', 'AMD', 'NFLX', 'INTC',
+  'SPY', 'QQQ', 'IWM', 'DIA', 'BAC', 'JPM', 'WFC', 'GS', 'C', 'MS',
+  'XOM', 'CVX', 'OXY', 'COP', 'SLB', 'KO', 'PEP', 'MCD', 'SBUX', 'NKE',
+  'DIS', 'BA', 'CAT', 'GE', 'F', 'GM', 'UBER', 'PYPL', 'SQ', 'SHOP',
+  'CRM', 'ORCL', 'ADBE', 'CSCO', 'QCOM', 'AVGO', 'MU', 'PLTR', 'COIN', 'SOFI'
+] as const
+
 export interface TradingModeInfo {
   mode: TradingMode
   liveAllowed: boolean

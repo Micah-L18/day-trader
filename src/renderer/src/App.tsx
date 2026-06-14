@@ -12,6 +12,7 @@ import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
 import { SettingsModal } from '@renderer/panels/Settings/SettingsModal'
 import { OnboardingModal } from '@renderer/panels/Onboarding/OnboardingModal'
 import { LiveArmModal } from '@renderer/panels/Live/LiveArmModal'
+import { ScreenerModal } from '@renderer/panels/Screener/ScreenerModal'
 import { OrderTicket } from '@renderer/panels/OrderTicket/OrderTicket'
 import { Orders } from '@renderer/panels/Orders/Orders'
 import { Positions } from '@renderer/panels/Positions/Positions'
@@ -60,6 +61,7 @@ function App(): ReactElement {
       <SettingsModal />
       <OnboardingModal />
       <LiveArmModal />
+      <ScreenerModal />
       <OrderTicket />
     </div>
   )
@@ -67,6 +69,7 @@ function App(): ReactElement {
 
 function TopBar(): ReactElement {
   const openSettings = useSystemStore((s) => s.openSettings)
+  const openScreener = useSystemStore((s) => s.openScreener)
   const status = useSystemStore((s) => s.status)
   const label = status.provider === 'alpaca' ? 'Alpaca · paper' : 'Simulated feed'
 
@@ -82,8 +85,9 @@ function TopBar(): ReactElement {
         </span>
       </div>
       <div className="topbar__right">
-        <button className="btn btn--ghost">Add widget</button>
-        <button className="btn btn--ghost">Individual investing ⌄</button>
+        <button className="btn btn--ghost" onClick={openScreener}>
+          🔎 Screener
+        </button>
         <button className="btn btn--ghost" onClick={openSettings} title="Settings">
           ⚙
         </button>

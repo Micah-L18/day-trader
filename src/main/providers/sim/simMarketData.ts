@@ -1,4 +1,11 @@
-import { TIMEFRAME_MS, type Bar, type Quote, type Timeframe, type Trade } from '@shared/types'
+import {
+  TIMEFRAME_MS,
+  type Bar,
+  type Quote,
+  type Snapshot,
+  type Timeframe,
+  type Trade
+} from '@shared/types'
 import { TypedEmitter } from '../emitter'
 import type { MarketDataEvents, MarketDataProvider } from '../types'
 import { PriceEngine } from './priceEngine'
@@ -50,6 +57,22 @@ export class SimMarketData extends TypedEmitter<MarketDataEvents> implements Mar
 
   getBars(symbol: string, timeframe: Timeframe, limit: number): Promise<Bar[]> {
     return Promise.resolve(this.engine.history(symbol.toUpperCase(), timeframe, limit))
+  }
+
+  getSnapshots(symbols: string[]): Promise<Snapshot[]> {
+    return Promise.resolve(
+      symbols.map((s) => {
+        const sym = s.toUpperCase()
+        const price = this.engine.price(sym)
+        const open = this.engine.open(sym)
+        return {
+          symbol: sym,
+          price,
+          changePct: open > 0 ? ((price - open) / open) * 100 : 0,
+          volume: Math.round(50_000 + Math.random() * 5_000_000)
+        }
+      })
+    )
   }
 
   private tickAll(): void {

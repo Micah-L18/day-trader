@@ -19,6 +19,7 @@ import type {
   Quote,
   RiskDecision,
   RiskState,
+  Snapshot,
   SaveSettingsInput,
   SettingsInfo,
   TestConnectionResult,
@@ -49,6 +50,8 @@ const api = {
   data: {
     getBars: (symbol: string, timeframe: Timeframe, limit: number): Promise<Bar[]> =>
       ipcRenderer.invoke('data:getBars', symbol, timeframe, limit),
+    snapshots: (symbols: string[]): Promise<Snapshot[]> =>
+      ipcRenderer.invoke('data:snapshots', symbols),
     subscribe: (symbols: string[]): Promise<void> => ipcRenderer.invoke('data:subscribe', symbols),
     unsubscribe: (symbols: string[]): Promise<void> =>
       ipcRenderer.invoke('data:unsubscribe', symbols),

@@ -1,4 +1,11 @@
-import type { AlpacaCredentials, Bar, ConnectionState, Timeframe, Trade } from '@shared/types'
+import type {
+  AlpacaCredentials,
+  Bar,
+  ConnectionState,
+  Snapshot,
+  Timeframe,
+  Trade
+} from '@shared/types'
 import { TypedEmitter } from '../emitter'
 import type { MarketDataEvents, MarketDataProvider } from '../types'
 import { TIMEFRAME_MS } from '@shared/types'
@@ -60,6 +67,10 @@ export class AlpacaMarketData extends TypedEmitter<MarketDataEvents> implements 
 
   getBars(symbol: string, timeframe: Timeframe, limit: number): Promise<Bar[]> {
     return this.rest.getBars(symbol, timeframe, limit)
+  }
+
+  getSnapshots(symbols: string[]): Promise<Snapshot[]> {
+    return this.rest.getSnapshots(symbols)
   }
 
   private handleTrade(t: Trade): void {

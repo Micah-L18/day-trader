@@ -5,20 +5,26 @@ interface SystemState {
   status: ConnectionStatus
   settingsOpen: boolean
   liveArmOpen: boolean
+  screenerOpen: boolean
   setStatus: (s: ConnectionStatus) => void
   openSettings: () => void
   closeSettings: () => void
   openLiveArm: () => void
   closeLiveArm: () => void
+  openScreener: () => void
+  closeScreener: () => void
 }
 
 export const useSystemStore = create<SystemState>((set) => ({
   status: { provider: 'sim', market: 'idle', trading: 'idle' },
   settingsOpen: false,
   liveArmOpen: false,
+  screenerOpen: false,
   setStatus: (status) => set({ status }),
   openSettings: () => set({ settingsOpen: true }),
   closeSettings: () => set({ settingsOpen: false }),
   openLiveArm: () => set({ liveArmOpen: true }),
-  closeLiveArm: () => set({ liveArmOpen: false })
+  closeLiveArm: () => set({ liveArmOpen: false }),
+  openScreener: () => set({ screenerOpen: true }),
+  closeScreener: () => set({ screenerOpen: false })
 }))

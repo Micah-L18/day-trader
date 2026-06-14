@@ -57,6 +57,9 @@ export function registerIpc(
   ipcMain.handle('data:getBars', (_e, symbol: string, timeframe: Timeframe, limit: number) =>
     manager.marketData.getBars(symbol, timeframe, limit)
   )
+  ipcMain.handle('data:snapshots', (_e, symbols: string[]) =>
+    manager.marketData.getSnapshots(symbols)
+  )
   ipcMain.handle('data:subscribe', (_e, symbols: string[]) => {
     manager.subscribe(symbols)
   })

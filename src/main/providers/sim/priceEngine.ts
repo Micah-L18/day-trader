@@ -25,6 +25,7 @@ const shock = (): number => (Math.random() + Math.random() + Math.random() - 1.5
  */
 export class PriceEngine {
   private prices = new Map<string, number>()
+  private opens = new Map<string, number>()
   private readonly volatility: number
 
   constructor(opts: { volatility?: number } = {}) {
@@ -36,8 +37,15 @@ export class PriceEngine {
     if (p === undefined) {
       p = SEED_PRICES[symbol] ?? this.seedFor(symbol)
       this.prices.set(symbol, p)
+      this.opens.set(symbol, p)
     }
     return p
+  }
+
+  /** Session-open reference price (for % change). */
+  open(symbol: string): number {
+    this.price(symbol)
+    return this.opens.get(symbol) ?? 0
   }
 
   /** Advance the random walk one step and return the new price. */
