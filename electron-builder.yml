@@ -5,7 +5,10 @@ directories:
 files:
   - '!**/.vscode/*'
   - '!src/*'
+  - '!scripts/*'
+  - '!tests/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!vitest.config.{js,ts,mjs,cjs}'
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml,package-lock.json}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
@@ -27,7 +30,8 @@ linux:
   target:
     - AppImage
     - deb
-  category: Office
+  category: Finance
+  maintainer: Daytrader Terminal <noreply@daytrader.local>
   artifactName: ${productName}-${version}.${ext}
 npmRebuild: false
 publish: null

@@ -54,3 +54,11 @@ export function loadLayouts(): LayoutsState {
 export function saveLayouts(state: LayoutsState): void {
   writeJson('layouts.json', state)
 }
+
+export function isOnboarded(): boolean {
+  return readJson<{ onboarded: boolean }>('meta.json', { onboarded: false }).onboarded === true
+}
+
+export function setOnboarded(): void {
+  writeJson('meta.json', { onboarded: true })
+}

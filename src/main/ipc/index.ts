@@ -16,12 +16,14 @@ import { saveSettings } from '../settings'
 import { getSettingsInfo, testConnection } from '../settingsService'
 import { openPanelWindow } from '../windows'
 import {
+  isOnboarded,
   loadKeymap,
   loadLayouts,
   loadWatchlist,
   saveKeymap,
   saveLayouts,
-  saveWatchlist
+  saveWatchlist,
+  setOnboarded
 } from '../persistence'
 
 /**
@@ -89,6 +91,13 @@ export function registerIpc(manager: ProviderManager, config: AppConfig, gate: S
   ipcMain.handle('layouts:save', (_e, state: LayoutsState) => {
     saveLayouts(state)
     return state
+  })
+
+  // First-run onboarding flag.
+  ipcMain.handle('onboarding:get', () => isOnboarded())
+  ipcMain.handle('onboarding:complete', () => {
+    setOnboarded()
+    return true
   })
 
   // ---- Settings ----

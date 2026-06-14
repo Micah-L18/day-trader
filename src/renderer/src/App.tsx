@@ -10,6 +10,7 @@ import { useHotkeys } from '@renderer/state/useHotkeys'
 import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
 import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
 import { SettingsModal } from '@renderer/panels/Settings/SettingsModal'
+import { OnboardingModal } from '@renderer/panels/Onboarding/OnboardingModal'
 import { OrderTicket } from '@renderer/panels/OrderTicket/OrderTicket'
 import { Orders } from '@renderer/panels/Orders/Orders'
 import { Positions } from '@renderer/panels/Positions/Positions'
@@ -53,6 +54,7 @@ function App(): ReactElement {
       <RiskBar />
       <StatusBar />
       <SettingsModal />
+      <OnboardingModal />
       <OrderTicket />
     </div>
   )

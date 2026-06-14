@@ -110,6 +110,11 @@ const api = {
   layouts: {
     get: (): Promise<LayoutsState> => ipcRenderer.invoke('layouts:get'),
     save: (state: LayoutsState): Promise<LayoutsState> => ipcRenderer.invoke('layouts:save', state)
+  },
+
+  onboarding: {
+    get: (): Promise<boolean> => ipcRenderer.invoke('onboarding:get'),
+    complete: (): Promise<boolean> => ipcRenderer.invoke('onboarding:complete')
   }
 }
 

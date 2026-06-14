@@ -58,15 +58,32 @@ npm run build:mac    # .dmg
 npm run build:linux  # .AppImage + .deb
 npm run build:win    # .exe (NSIS)
 npm run build:unpack # unpacked app dir (fast sanity check, no installer)
+npm run icon         # regenerate build/icon.png (committed; rarely needed)
 ```
 
-Artifacts are written to `dist/`.
+Artifacts are written to `dist/`. A fresh install launches in **paper/sim mode**
+with a first-run welcome — no account or config needed to start.
+
+### First run on macOS (unsigned build)
+
+These builds aren't notarized with a paid Apple Developer ID, so Gatekeeper may
+block the first launch. Any one of:
+
+- **Right-click the app → Open → Open** (one-time), or
+- strip the quarantine flag: `xattr -dr com.apple.quarantine "/Applications/Daytrader Terminal.app"`, or
+- if it quits immediately on Apple Silicon, ad-hoc sign it:
+  `codesign --force --deep --sign - "/Applications/Daytrader Terminal.app"`
 
 ## Configuration
 
-Copy `.env.example` to `.env` (git-ignored) and add your Alpaca **paper** keys
-when Phase 3 lands. Real-money trading additionally requires `ALLOW_LIVE_TRADING=1`
-and app `mode=live` — keep both off until you intend to trade live.
+The app stores everything it needs locally (no `.env` required):
+
+- **Provider + Alpaca paper keys** — set in-app via **⚙ Settings**. Keys are
+  encrypted in the OS keychain; the renderer never sees them.
+- **Watchlist, hotkeys, layouts** — persisted as JSON in the app's userData dir.
+
+Real-money trading is gated off and additionally requires `ALLOW_LIVE_TRADING=1`
+plus app `mode=live` (Phase 7) — keep both off until you intend to trade live.
 
 ## Project layout
 

@@ -1,7 +1,7 @@
 import { BrowserWindow, shell } from 'electron'
 import { join } from 'path'
-import { is } from '@electron-toolkit/utils'
 import type { PanelKind } from '@shared/types'
+import { loadRenderer } from './appProtocol'
 
 const preload = (): string => join(__dirname, '../preload/index.js')
 
@@ -53,13 +53,6 @@ export function openPanelWindow(panel: PanelKind, params: Record<string, string>
     return { action: 'deny' }
   })
 
-  const query = { panel, ...params }
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    const qs = new URLSearchParams(query).toString()
-    win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}?${qs}`)
-  } else {
-    win.loadFile(join(__dirname, '../renderer/index.html'), { query })
-  }
-
+  loadRenderer(win, { panel, ...params })
   panelWindows.set(key, win)
 }

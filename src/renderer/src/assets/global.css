@@ -422,6 +422,28 @@ button {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* Onboarding */
+.modal.onboarding {
+  width: 520px;
+}
+.modal p {
+  color: var(--text-dim);
+  line-height: 1.55;
+  margin: 0 0 12px;
+}
+.onboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  color: var(--text-dim);
+}
+.onboard-list b {
+  color: var(--text);
+}
 .modal__head {
   display: flex;
   align-items: center;

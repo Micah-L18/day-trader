@@ -1,6 +1,6 @@
 import { app, shell, BrowserWindow, globalShortcut } from 'electron'
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { electronApp, optimizer } from '@electron-toolkit/utils'
 import type { ProviderKind } from '@shared/types'
 import { loadConfig } from './config'
 import { createProviders } from './providers'
@@ -11,12 +11,16 @@ import { loadCreds } from './secrets/keychain'
 import { loadWatchlist } from './persistence'
 import { createJournal } from './journal'
 import { SafetyGate } from './risk/safetyGate'
+import { loadRenderer, registerAppScheme, setupRendererProtocol } from './appProtocol'
 
 /** System-wide panic key: flatten everything even when the app isn't focused. */
 const PANIC_ACCELERATOR = 'CommandOrControl+Shift+Backspace'
 
 const config = loadConfig()
 let manager: ProviderManager | null = null
+
+// Must run before app `ready`.
+registerAppScheme()
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -45,15 +49,12 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
+  loadRenderer(mainWindow)
 }
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.daytrader.terminal')
+  setupRendererProtocol()
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
