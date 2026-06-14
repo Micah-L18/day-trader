@@ -205,6 +205,42 @@ day-trader/
 
 ---
 
+## Phases 8+ — feature expansion (post-MVP)
+
+**Phase 8 — Chart history ranges + configurable indicators.** A range selector
+(1D/1W/1M/6M/1Y/MAX) that picks interval + lookback; an indicators menu to toggle
+Volume, MACD, RSI, EMA(20/50), VWAP, Bollinger Bands. Indicator math in
+`shared/indicators`, unit-tested.
+*Accept:* switch ranges + toggle indicators on the chart.
+
+**Phase 9 — Chart drawing tools.** Horizontal + trend lines drawn on the chart,
+persisted per symbol.
+*Accept:* draw/clear lines that survive interval changes.
+
+**Phase 10 — Multiple watchlists.** Named watchlists, switchable, add/remove/rename.
+*Accept:* create several lists; selection persists.
+
+**Phase 11 — Screeners.** A screener panel filtering a universe by price / % change /
+volume; one-click add results to a watchlist.
+*Accept:* filters return matching symbols live.
+
+**Phase 12 — Portfolios & real account identity.** Multiple named portfolios
+(sim profiles + Alpaca paper/live), an account switcher, and the real Alpaca
+account number shown.
+*Accept:* switch portfolios; the active account name/number is displayed.
+
+**Phase 13 — Settings redesign + editable risk limits.** Tabbed settings
+(General · Portfolios · Risk · Hotkeys), with the SafetyGate limits made
+user-editable.
+*Accept:* a clean tabbed settings modal; risk limits persist and apply.
+
+**Phase 14 — Dockable widget dashboard.** Resizable, rearrangeable widgets
+(chart, account value/cash, watchlist, recent orders, positions) on a grid;
+"Add widget"; layout saved per tab.
+*Accept:* add/move/resize widgets; arrangement persists per layout.
+
+---
+
 ## 9. Testing
 - **Unit (Vitest):** indicators (MACD/EMA correctness vs known values), `SafetyGate` (pass + reject per limit, kill-switch, daily-loss halt, live-gating), `SimProvider`.
 - **E2E (Playwright-Electron):** smoke — app launches, chart renders, place a **sim** order, panic-flatten.
