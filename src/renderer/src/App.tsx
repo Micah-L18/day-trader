@@ -1,13 +1,17 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import type { ConnectionState, TradingModeInfo } from '@shared/types'
+import type { ConnectionState, Position, TradingModeInfo } from '@shared/types'
 import { useAccountStore } from '@renderer/state/accountStore'
 import { changePct, useMarketStore } from '@renderer/state/marketStore'
 import { useWatchlistStore } from '@renderer/state/watchlistStore'
 import { useSystemStore } from '@renderer/state/systemStore'
+import { useTicketStore } from '@renderer/state/ticketStore'
 import { useStreamBridge } from '@renderer/state/useStreamBridge'
 import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
 import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
 import { SettingsModal } from '@renderer/panels/Settings/SettingsModal'
+import { OrderTicket } from '@renderer/panels/OrderTicket/OrderTicket'
+import { Orders } from '@renderer/panels/Orders/Orders'
+import { RiskBar } from '@renderer/panels/Risk/RiskBar'
 import { pct, signedUsd, usd } from '@renderer/lib/format'
 
 /**
@@ -25,6 +29,7 @@ function App(): ReactElement {
         <LeftRail />
         <ChartPanel />
       </div>
+      <RiskBar />
       <StatusBar />
       <SettingsModal />
     </div>
@@ -66,6 +71,7 @@ function SymbolHeader(): ReactElement {
   const selected = useWatchlistStore((s) => s.selected)
   const quotes = useMarketStore((s) => s.quotes)
   const opens = useMarketStore((s) => s.opens)
+  const setSide = useTicketStore((s) => s.setSide)
 
   const q = selected ? quotes[selected] : undefined
   const last = q ? q.last ?? q.bid : undefined
@@ -83,10 +89,13 @@ function SymbolHeader(): ReactElement {
         {up ? '▲' : '▼'} {signedUsd(chgAbs)} ({pct(chg)})
       </div>
       <div className="trade-buttons">
-        <button className="btn btn--buy">Buy</button>
-        <button className="btn btn--short">Short</button>
+        <button className="btn btn--buy" onClick={() => setSide('buy')}>
+          Buy
+        </button>
+        <button className="btn btn--short" onClick={() => setSide('sell')}>
+          Short
+        </button>
       </div>
-      <div className="hint">Order entry arrives in Phase 4 (behind the SafetyGate).</div>
     </div>
   )
 }
@@ -117,6 +126,15 @@ function AccountSummary(): ReactElement {
 function Positions(): ReactElement {
   const positions = useAccountStore((s) => s.positions)
 
+  const close = (p: Position): void => {
+    void window.api.orders.submit({
+      symbol: p.symbol,
+      side: p.qty > 0 ? 'sell' : 'buy',
+      qty: Math.abs(p.qty),
+      type: 'market'
+    })
+  }
+
   return (
     <section className="rail-section rail-section--fill">
       <div className="rail-section__title">Positions</div>
@@ -129,8 +147,8 @@ function Positions(): ReactElement {
               <th>Symbol</th>
               <th>Qty</th>
               <th>Avg</th>
-              <th>Value</th>
               <th>P&amp;L</th>
+              <th />
             </tr>
           </thead>
           <tbody>
@@ -139,9 +157,13 @@ function Positions(): ReactElement {
                 <td className="postable__sym">{p.symbol}</td>
                 <td>{p.qty}</td>
                 <td>{usd(p.avgPrice)}</td>
-                <td>{usd(p.marketValue)}</td>
                 <td className={p.unrealizedPnl >= 0 ? 'up' : 'down'}>
                   {signedUsd(p.unrealizedPnl)}
+                </td>
+                <td>
+                  <button className="link-btn" onClick={() => close(p)}>
+                    close
+                  </button>
                 </td>
               </tr>
             ))}
@@ -156,8 +178,10 @@ function LeftRail(): ReactElement {
   return (
     <aside className="leftrail">
       <SymbolHeader />
+      <OrderTicket />
       <AccountSummary />
       <Watchlist />
+      <Orders />
       <Positions />
     </aside>
   )

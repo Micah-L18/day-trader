@@ -150,3 +150,53 @@ export interface TestConnectionResult {
   ok: boolean
   message: string
 }
+
+// ---- Risk / SafetyGate ----
+
+export interface RiskLimits {
+  /** Hard ceiling on a single order's notional ($). */
+  maxOrderNotional: number
+  /** Max absolute shares held per symbol after the order. */
+  maxPositionShares: number
+  /** Max absolute notional per symbol after the order ($). */
+  maxPositionNotional: number
+  /** Max sum of |position notional| across all symbols ($). */
+  maxGrossExposure: number
+  /** Loss from start-of-day equity that halts new entries ($). */
+  dailyLossLimit: number
+  /** Cap on accepted orders per rolling minute. */
+  maxOrdersPerMinute: number
+}
+
+export type RiskRejectCode =
+  | 'kill_switch'
+  | 'daily_halt'
+  | 'invalid_qty'
+  | 'order_notional'
+  | 'buying_power'
+  | 'position_shares'
+  | 'position_notional'
+  | 'gross_exposure'
+  | 'rate_limit'
+  | 'broker_error'
+
+export interface RiskDecision {
+  approved: boolean
+  order?: Order
+  reason?: string
+  code?: RiskRejectCode
+}
+
+export interface RiskState {
+  killSwitch: boolean
+  dailyHalt: boolean
+  startEquity: number | null
+  equity: number | null
+  dailyPnl: number
+  limits: RiskLimits
+}
+
+export interface FlattenResult {
+  canceled: number
+  closed: number
+}

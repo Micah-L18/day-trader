@@ -16,6 +16,7 @@
   --rail-w: 320px;
   --topbar-h: 46px;
   --status-h: 26px;
+  --risk-h: 34px;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
@@ -60,7 +61,7 @@ button {
 /* ---------- App shell ---------- */
 .app {
   display: grid;
-  grid-template-rows: var(--topbar-h) 1fr var(--status-h);
+  grid-template-rows: var(--topbar-h) 1fr var(--risk-h) var(--status-h);
   height: 100vh;
 }
 
@@ -448,6 +449,116 @@ button {
 .field:focus {
   outline: none;
   border-color: var(--accent);
+}
+.field--sm {
+  margin-top: 0;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+/* ---------- Order ticket ---------- */
+.ticket .rail-section__title {
+  margin-bottom: 8px;
+}
+.seg--full {
+  display: flex;
+  width: 100%;
+}
+.seg--full .seg__btn {
+  flex: 1;
+  text-align: center;
+}
+.seg__btn--buy {
+  background: rgba(0, 200, 5, 0.18);
+  color: var(--up);
+}
+.seg__btn--sell {
+  background: rgba(255, 80, 0, 0.16);
+  color: var(--down);
+}
+.ticket__row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.ticket__row > * {
+  flex: 1;
+  min-width: 0;
+}
+.ticket__check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+.ticket__est {
+  margin-top: 8px;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+.btn--full {
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px;
+  font-weight: 600;
+}
+.ticket__result {
+  margin-top: 8px;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 5px;
+}
+.ticket__result.ok {
+  background: rgba(0, 200, 5, 0.12);
+  color: var(--up);
+}
+.ticket__result.err {
+  background: rgba(255, 80, 0, 0.12);
+  color: var(--down);
+}
+.link-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  padding: 0;
+}
+
+/* ---------- Risk bar ---------- */
+.riskbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.riskbar .pnl {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.riskbar .halt {
+  color: var(--down);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.btn--sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.btn--killon {
+  background: rgba(255, 80, 0, 0.2);
+  border-color: var(--down);
+  color: var(--down);
+  font-weight: 600;
+}
+.btn--danger {
+  background: rgba(255, 80, 0, 0.12);
+  border-color: rgba(255, 80, 0, 0.4);
+  color: var(--down);
 }
 .chart__intervals {
   display: flex;

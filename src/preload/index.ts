@@ -6,9 +6,13 @@ import type {
   Bar,
   BarUpdate,
   ConnectionStatus,
+  FlattenResult,
   Order,
+  OrderRequest,
   Position,
   Quote,
+  RiskDecision,
+  RiskState,
   SaveSettingsInput,
   SettingsInfo,
   TestConnectionResult,
@@ -58,7 +62,17 @@ const api = {
 
   orders: {
     get: (): Promise<Order[]> => ipcRenderer.invoke('orders:get'),
+    submit: (req: OrderRequest): Promise<RiskDecision> => ipcRenderer.invoke('orders:submit', req),
+    cancel: (orderId: string): Promise<void> => ipcRenderer.invoke('orders:cancel', orderId),
     onUpdate: (cb: (o: Order) => void): (() => void) => on<Order>('stream:order', cb)
+  },
+
+  risk: {
+    getState: (): Promise<RiskState> => ipcRenderer.invoke('risk:getState'),
+    setKillSwitch: (on: boolean): Promise<RiskState> =>
+      ipcRenderer.invoke('risk:setKillSwitch', on),
+    flattenAll: (): Promise<FlattenResult> => ipcRenderer.invoke('risk:flattenAll'),
+    onUpdate: (cb: (s: RiskState) => void): (() => void) => on<RiskState>('stream:risk', cb)
   },
 
   watchlist: {

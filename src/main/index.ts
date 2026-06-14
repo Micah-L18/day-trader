@@ -8,6 +8,8 @@ import { ProviderManager, type BuildProviders } from './providerManager'
 import { registerIpc } from './ipc'
 import { loadSettings } from './settings'
 import { loadCreds } from './secrets/keychain'
+import { createJournal } from './journal'
+import { SafetyGate } from './risk/safetyGate'
 
 const config = loadConfig()
 let manager: ProviderManager | null = null
@@ -61,10 +63,29 @@ app.whenReady().then(() => {
   const persisted = loadSettings()
   const initialKind: ProviderKind =
     persisted.provider === 'alpaca' && loadCreds() ? 'alpaca' : 'sim'
-  manager = new ProviderManager(initialKind, build)
+  const mgr = new ProviderManager(initialKind, build)
+  manager = mgr
 
-  registerIpc(manager, config)
-  manager.subscribe([...DEFAULT_WATCHLIST])
+  // The single submission chokepoint. Fed live context via the manager tap; it
+  // re-points across Sim↔Alpaca swaps automatically.
+  const journal = createJournal()
+  const gate = new SafetyGate({
+    getBroker: () => mgr.broker,
+    journal,
+    onState: (state) => {
+      for (const win of BrowserWindow.getAllWindows()) {
+        if (!win.isDestroyed()) win.webContents.send('stream:risk', state)
+      }
+    }
+  })
+  mgr.setContextTap({
+    onAccount: (a) => gate.setAccount(a),
+    onPositions: (p) => gate.setPositions(p),
+    onQuote: (q) => gate.setQuote(q)
+  })
+
+  registerIpc(mgr, config, gate)
+  mgr.subscribe([...DEFAULT_WATCHLIST])
 
   createWindow()
 

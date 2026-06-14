@@ -3,6 +3,7 @@ import { useAccountStore } from './accountStore'
 import { useMarketStore } from './marketStore'
 import { useWatchlistStore } from './watchlistStore'
 import { useSystemStore } from './systemStore'
+import { useRiskStore } from './riskStore'
 
 /**
  * Connects the preload `window.api` streams to the zustand stores. Mount once,
@@ -14,6 +15,7 @@ export function useStreamBridge(): void {
     const account = useAccountStore.getState()
     const watchlist = useWatchlistStore.getState()
     const system = useSystemStore.getState()
+    const risk = useRiskStore.getState()
 
     // Initial snapshots.
     void window.api.watchlist.get().then(watchlist.setSymbols)
@@ -21,6 +23,7 @@ export function useStreamBridge(): void {
     void window.api.positions.get().then(account.setPositions)
     void window.api.orders.get().then(account.setOrders)
     void window.api.status.get().then(system.setStatus)
+    void window.api.risk.getState().then(risk.setRisk)
 
     // Live subscriptions.
     const unsubs = [
@@ -29,7 +32,8 @@ export function useStreamBridge(): void {
       window.api.account.onUpdate(account.setAccount),
       window.api.positions.onUpdate(account.setPositions),
       window.api.orders.onUpdate(account.upsertOrder),
-      window.api.status.onUpdate(system.setStatus)
+      window.api.status.onUpdate(system.setStatus),
+      window.api.risk.onUpdate(risk.setRisk)
     ]
     return () => unsubs.forEach((u) => u())
   }, [])
