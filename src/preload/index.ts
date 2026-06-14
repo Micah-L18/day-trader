@@ -2,11 +2,16 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type {
   Account,
+  AlpacaCredentials,
   Bar,
   BarUpdate,
+  ConnectionStatus,
   Order,
   Position,
   Quote,
+  SaveSettingsInput,
+  SettingsInfo,
+  TestConnectionResult,
   Timeframe,
   TradingModeInfo,
   Trade
@@ -59,6 +64,20 @@ const api = {
   watchlist: {
     get: (): Promise<string[]> => ipcRenderer.invoke('watchlist:get'),
     set: (symbols: string[]): Promise<string[]> => ipcRenderer.invoke('watchlist:set', symbols)
+  },
+
+  status: {
+    get: (): Promise<ConnectionStatus> => ipcRenderer.invoke('status:get'),
+    onUpdate: (cb: (s: ConnectionStatus) => void): (() => void) =>
+      on<ConnectionStatus>('stream:status', cb)
+  },
+
+  settings: {
+    get: (): Promise<SettingsInfo> => ipcRenderer.invoke('settings:get'),
+    save: (input: SaveSettingsInput): Promise<SettingsInfo> =>
+      ipcRenderer.invoke('settings:save', input),
+    testConnection: (creds?: AlpacaCredentials): Promise<TestConnectionResult> =>
+      ipcRenderer.invoke('settings:testConnection', creds)
   }
 }
 

@@ -1,11 +1,13 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import type { TradingModeInfo } from '@shared/types'
+import type { ConnectionState, TradingModeInfo } from '@shared/types'
 import { useAccountStore } from '@renderer/state/accountStore'
 import { changePct, useMarketStore } from '@renderer/state/marketStore'
 import { useWatchlistStore } from '@renderer/state/watchlistStore'
+import { useSystemStore } from '@renderer/state/systemStore'
 import { useStreamBridge } from '@renderer/state/useStreamBridge'
 import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
 import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
+import { SettingsModal } from '@renderer/panels/Settings/SettingsModal'
 import { pct, signedUsd, usd } from '@renderer/lib/format'
 
 /**
@@ -24,11 +26,16 @@ function App(): ReactElement {
         <ChartPanel />
       </div>
       <StatusBar />
+      <SettingsModal />
     </div>
   )
 }
 
 function TopBar(): ReactElement {
+  const openSettings = useSystemStore((s) => s.openSettings)
+  const status = useSystemStore((s) => s.status)
+  const label = status.provider === 'alpaca' ? 'Alpaca · paper' : 'Simulated feed'
+
   return (
     <header className="topbar">
       <div className="topbar__left">
@@ -40,11 +47,16 @@ function TopBar(): ReactElement {
         </nav>
       </div>
       <div className="topbar__center">
-        <span className="market-pill">● Simulated feed · live</span>
+        <span className="market-pill">
+          <span className={`conn__dot conn__dot--${status.market}`} /> {label}
+        </span>
       </div>
       <div className="topbar__right">
         <button className="btn btn--ghost">Add widget</button>
         <button className="btn btn--ghost">Individual investing ⌄</button>
+        <button className="btn btn--ghost" onClick={openSettings} title="Settings">
+          ⚙
+        </button>
       </div>
     </header>
   )
@@ -194,6 +206,15 @@ function ChartPanel(): ReactElement {
   )
 }
 
+function ConnDot({ label, state }: { label: string; state: ConnectionState }): ReactElement {
+  return (
+    <span className="conn">
+      <span className={`conn__dot conn__dot--${state}`} />
+      {label}
+    </span>
+  )
+}
+
 function StatusBar(): ReactElement {
   const [version, setVersion] = useState('…')
   const [info, setInfo] = useState<TradingModeInfo>({
@@ -201,6 +222,7 @@ function StatusBar(): ReactElement {
     liveAllowed: false,
     provider: 'sim'
   })
+  const status = useSystemStore((s) => s.status)
 
   useEffect(() => {
     void window.api.getVersion().then(setVersion)
@@ -214,7 +236,10 @@ function StatusBar(): ReactElement {
       >
         {info.mode.toUpperCase()} TRADING
       </span>
-      <span className="status-dim">provider: {info.provider}</span>
+      <span className="status-dim">provider: {status.provider}</span>
+      <ConnDot label="data" state={status.market} />
+      <ConnDot label="broker" state={status.trading} />
+      {status.message && <span className="status-dim">{status.message}</span>}
       <span className="spacer" />
       <span className="status-dim">live gate: {info.liveAllowed ? 'armed' : 'locked'}</span>
       <span className="status-dim">v{version}</span>

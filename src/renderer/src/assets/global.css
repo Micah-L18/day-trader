@@ -306,6 +306,149 @@ button {
   padding: 12px;
   font-size: 12px;
 }
+
+/* ---------- Connection dots ---------- */
+.conn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-faint);
+}
+.conn__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  display: inline-block;
+}
+.conn__dot--connected {
+  background: var(--up);
+}
+.conn__dot--connecting {
+  background: #f0a020;
+}
+.conn__dot--error {
+  background: var(--down);
+}
+.conn__dot--idle {
+  background: var(--text-faint);
+}
+
+/* ---------- Settings modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal {
+  width: 460px;
+  max-width: calc(100vw - 40px);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.modal__head h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.modal__close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+.modal__section {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.modal__label {
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.modal__hint {
+  color: var(--text-faint);
+  font-size: 11px;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+.modal__warn {
+  color: #f0a020;
+  font-size: 11px;
+  margin-top: 8px;
+}
+.modal__result {
+  margin: 0 18px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.modal__result.ok {
+  background: rgba(0, 200, 5, 0.12);
+  color: var(--up);
+}
+.modal__result.err {
+  background: rgba(255, 80, 0, 0.12);
+  color: var(--down);
+}
+.modal__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+}
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.seg__btn {
+  background: var(--bg-elev);
+  border: none;
+  padding: 7px 14px;
+  color: var(--text-dim);
+}
+.seg__btn--on {
+  background: var(--accent);
+  color: #fff;
+}
+.field {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--accent);
+}
 .chart__intervals {
   display: flex;
   align-items: center;

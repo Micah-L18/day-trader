@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useAccountStore } from './accountStore'
 import { useMarketStore } from './marketStore'
 import { useWatchlistStore } from './watchlistStore'
+import { useSystemStore } from './systemStore'
 
 /**
  * Connects the preload `window.api` streams to the zustand stores. Mount once,
@@ -12,12 +13,14 @@ export function useStreamBridge(): void {
     const market = useMarketStore.getState()
     const account = useAccountStore.getState()
     const watchlist = useWatchlistStore.getState()
+    const system = useSystemStore.getState()
 
     // Initial snapshots.
     void window.api.watchlist.get().then(watchlist.setSymbols)
     void window.api.account.get().then(account.setAccount)
     void window.api.positions.get().then(account.setPositions)
     void window.api.orders.get().then(account.setOrders)
+    void window.api.status.get().then(system.setStatus)
 
     // Live subscriptions.
     const unsubs = [
@@ -25,7 +28,8 @@ export function useStreamBridge(): void {
       window.api.data.onBar(market.applyBar),
       window.api.account.onUpdate(account.setAccount),
       window.api.positions.onUpdate(account.setPositions),
-      window.api.orders.onUpdate(account.upsertOrder)
+      window.api.orders.onUpdate(account.upsertOrder),
+      window.api.status.onUpdate(system.setStatus)
     ]
     return () => unsubs.forEach((u) => u())
   }, [])

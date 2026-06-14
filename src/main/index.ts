@@ -1,13 +1,16 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { DEFAULT_WATCHLIST } from '@shared/types'
+import { DEFAULT_WATCHLIST, type ProviderKind } from '@shared/types'
 import { loadConfig } from './config'
 import { createProviders } from './providers'
-import { registerIpc, wireStreams } from './ipc'
+import { ProviderManager, type BuildProviders } from './providerManager'
+import { registerIpc } from './ipc'
+import { loadSettings } from './settings'
+import { loadCreds } from './secrets/keychain'
 
 const config = loadConfig()
-const providers = createProviders(config)
+let manager: ProviderManager | null = null
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -31,7 +34,6 @@ function createWindow(): void {
     mainWindow.show()
   })
 
-  // Open external links in the OS browser, never in-app.
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
@@ -51,13 +53,18 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  registerIpc(providers, config)
-  wireStreams(providers)
+  // Build providers (creds loaded from the OS keychain). Sim unless the user
+  // saved Alpaca keys and selected Alpaca.
+  const build: BuildProviders = (kind, onStatus) =>
+    createProviders({ kind, creds: loadCreds(), live: config.mode === 'live', onStatus })
 
-  // Begin streaming the default watchlist immediately (sim needs no creds).
-  providers.marketData.subscribe([...DEFAULT_WATCHLIST])
-  providers.marketData.start()
-  providers.broker.start()
+  const persisted = loadSettings()
+  const initialKind: ProviderKind =
+    persisted.provider === 'alpaca' && loadCreds() ? 'alpaca' : 'sim'
+  manager = new ProviderManager(initialKind, build)
+
+  registerIpc(manager, config)
+  manager.subscribe([...DEFAULT_WATCHLIST])
 
   createWindow()
 
@@ -71,6 +78,5 @@ app.on('window-all-closed', () => {
 })
 
 app.on('will-quit', () => {
-  providers.marketData.stop()
-  providers.broker.stop()
+  manager?.stop()
 })

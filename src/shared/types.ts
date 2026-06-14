@@ -113,3 +113,40 @@ export interface TradingModeInfo {
   liveAllowed: boolean
   provider: string
 }
+
+export type ProviderKind = 'sim' | 'alpaca'
+
+export interface AlpacaCredentials {
+  keyId: string
+  secretKey: string
+}
+
+export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'error'
+
+export interface ConnectionStatus {
+  provider: ProviderKind
+  /** Market-data stream health. */
+  market: ConnectionState
+  /** Broker/trading health. */
+  trading: ConnectionState
+  message?: string
+}
+
+/** Non-secret settings surfaced to the renderer (keys themselves never leave main). */
+export interface SettingsInfo {
+  provider: ProviderKind
+  hasAlpacaKeys: boolean
+  alpacaKeyIdMasked: string | null
+  encryptionAvailable: boolean
+}
+
+export interface SaveSettingsInput {
+  provider: ProviderKind
+  /** Omitted when the user isn't changing the stored keys. */
+  alpaca?: AlpacaCredentials
+}
+
+export interface TestConnectionResult {
+  ok: boolean
+  message: string
+}
