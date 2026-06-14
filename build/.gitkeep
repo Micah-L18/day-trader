@@ -1,0 +1,3 @@
+# electron-builder buildResources dir. App icons (icon.png / icon.icns / icon.ico)
+# and mac entitlements go here in Phase 6. Until then electron-builder uses the
+# default Electron icon.

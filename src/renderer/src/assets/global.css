@@ -1,0 +1,338 @@
+/* Daytrader Terminal — dark theme (Legend-like palette). Phase 0 skeleton. */
+
+:root {
+  --bg: #0b0e11;
+  --bg-panel: #11161c;
+  --bg-elev: #161c24;
+  --border: #1e2630;
+  --border-soft: #161d26;
+  --text: #e6edf3;
+  --text-dim: #8b97a6;
+  --text-faint: #5b6573;
+  --up: #00c805;
+  --down: #ff5000;
+  --accent: #1f6feb;
+  --radius: 8px;
+  --rail-w: 320px;
+  --topbar-h: 46px;
+  --status-h: 26px;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+  user-select: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.up {
+  color: var(--up);
+}
+.down {
+  color: var(--down);
+}
+.spacer {
+  flex: 1;
+}
+
+/* ---------- App shell ---------- */
+.app {
+  display: grid;
+  grid-template-rows: var(--topbar-h) 1fr var(--status-h);
+  height: 100vh;
+}
+
+/* ---------- Top bar ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+.topbar__left,
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+.tab {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 5px 12px;
+  color: var(--text-dim);
+}
+.tab--active {
+  background: var(--bg-elev);
+  border-color: var(--border);
+  color: var(--text);
+}
+.tab--add {
+  color: var(--text-faint);
+}
+.market-pill {
+  color: var(--text-dim);
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  border-radius: 6px;
+  padding: 6px 12px;
+}
+.btn--ghost {
+  color: var(--text-dim);
+}
+.btn--pill {
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 12px;
+}
+.btn--buy {
+  flex: 1;
+  background: rgba(0, 200, 5, 0.12);
+  border-color: rgba(0, 200, 5, 0.4);
+  color: var(--up);
+  font-weight: 600;
+  padding: 9px;
+}
+.btn--short {
+  flex: 1;
+  background: rgba(255, 80, 0, 0.1);
+  border-color: rgba(255, 80, 0, 0.35);
+  color: var(--down);
+  font-weight: 600;
+  padding: 9px;
+}
+
+/* ---------- Workspace ---------- */
+.workspace {
+  display: grid;
+  grid-template-columns: var(--rail-w) 1fr;
+  min-height: 0;
+}
+
+/* ---------- Left rail ---------- */
+.leftrail {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.symbol-head {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.symbol-search {
+  color: var(--text-dim);
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  display: inline-block;
+  margin-bottom: 14px;
+}
+.symbol-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.symbol-price {
+  font-size: 28px;
+  font-weight: 700;
+}
+.symbol-change {
+  font-size: 13px;
+  margin-top: 2px;
+}
+.trade-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.rail-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.rail-section--fill {
+  flex: 1;
+}
+.rail-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rail-section__title {
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.account-value {
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+.account-change {
+  font-size: 12px;
+}
+.range-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.range {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.range--active {
+  background: rgba(0, 200, 5, 0.15);
+  color: var(--up);
+  font-weight: 600;
+}
+.kv {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  color: var(--text-dim);
+}
+.kv span:last-child {
+  color: var(--text);
+}
+.empty {
+  color: var(--text-faint);
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+/* ---------- Chart ---------- */
+.chart {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg);
+}
+.chart__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+.chart__symbol {
+  font-weight: 600;
+}
+.chart__tools {
+  display: flex;
+  gap: 14px;
+  color: var(--text-dim);
+}
+.tool {
+  cursor: pointer;
+}
+.chart__surface {
+  flex: 1;
+  display: grid;
+  grid-template-rows: 1fr 0.28fr 0.28fr;
+  gap: 1px;
+  background: var(--border-soft);
+  min-height: 0;
+}
+.chart__pane {
+  position: relative;
+  background: linear-gradient(var(--bg), #0a0d10);
+  background-image: linear-gradient(var(--border-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
+  background-size: 100% 40px, 80px 100%;
+}
+.pane-label {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  color: var(--text-faint);
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+.chart__intervals {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+/* ---------- Status bar ---------- */
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 12px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+}
+.status-dim {
+  color: var(--text-faint);
+}
+.mode-pill {
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.mode-pill--paper {
+  background: rgba(31, 111, 235, 0.18);
+  color: #58a6ff;
+}
+.mode-pill--live {
+  background: rgba(255, 80, 0, 0.2);
+  color: var(--down);
+}

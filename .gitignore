@@ -1,0 +1,21 @@
+node_modules/
+out/
+dist/
+.vite/
+
+# secrets & local data
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+logs/
+*.log
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
