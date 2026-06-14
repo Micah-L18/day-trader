@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Layout, LayoutsState } from '@shared/types'
+import type { Layout, LayoutsState, WidgetItem, WidgetType } from '@shared/types'
 import { useChartStore } from './chartStore'
 
 interface LayoutStoreState extends LayoutsState {
@@ -10,10 +10,17 @@ interface LayoutStoreState extends LayoutsState {
   remove: (id: string) => void
   rename: (id: string, name: string) => void
   updateActive: (patch: Partial<Layout>) => void
+  setWidget: (i: string, patch: Partial<WidgetItem>) => void
+  addWidget: (type: WidgetType) => void
+  removeWidget: (i: string) => void
 }
 
 export function activeLayout(s: LayoutsState): Layout | undefined {
   return s.layouts.find((l) => l.id === s.activeId)
+}
+
+export function activeWidgets(s: LayoutsState): WidgetItem[] {
+  return activeLayout(s)?.widgets ?? []
 }
 
 // Avoid crypto.randomUUID (not available in a non-secure file:// context).
@@ -85,5 +92,19 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
   updateActive: (patch) => {
     set((s) => ({ layouts: s.layouts.map((l) => (l.id === s.activeId ? { ...l, ...patch } : l)) }))
     persist(false)
+  },
+
+  setWidget: (i, patch) => {
+    const widgets = activeWidgets(get()).map((w) => (w.i === i ? { ...w, ...patch } : w))
+    get().updateActive({ widgets })
+  },
+
+  addWidget: (type) => {
+    const widget: WidgetItem = { i: uid(), type, x: 48, y: 48, w: 360, h: 280 }
+    get().updateActive({ widgets: [...activeWidgets(get()), widget] })
+  },
+
+  removeWidget: (i) => {
+    get().updateActive({ widgets: activeWidgets(get()).filter((w) => w.i !== i) })
   }
 }))

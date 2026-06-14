@@ -5,6 +5,7 @@ import {
   DEFAULT_KEYMAP,
   DEFAULT_RISK_LIMITS,
   DEFAULT_WATCHLIST,
+  DEFAULT_WIDGETS,
   type Keymap,
   type LayoutsState,
   type PortfoliosState,
@@ -66,14 +67,21 @@ export function allWatchlistSymbols(state: WatchlistsState): string[] {
   return [...new Set(state.lists.flatMap((l) => l.symbols.map((s) => s.toUpperCase())))]
 }
 
+const freshWidgets = (): typeof DEFAULT_WIDGETS => DEFAULT_WIDGETS.map((w) => ({ ...w }))
+
 const DEFAULT_LAYOUTS: LayoutsState = {
-  layouts: [{ id: 'default', name: 'Layout 1', railWidth: 320, interval: '1Min' }],
+  layouts: [{ id: 'default', name: 'Layout 1', railWidth: 320, interval: '5Min', widgets: freshWidgets() }],
   activeId: 'default'
 }
 
 export function loadLayouts(): LayoutsState {
   const data = readJson<LayoutsState>('layouts.json', DEFAULT_LAYOUTS)
-  return data.layouts && data.layouts.length > 0 ? data : DEFAULT_LAYOUTS
+  if (!data.layouts || data.layouts.length === 0) return DEFAULT_LAYOUTS
+  // Migrate older layouts that predate widgets.
+  const layouts = data.layouts.map((l) =>
+    l.widgets && l.widgets.length > 0 ? l : { ...l, widgets: freshWidgets() }
+  )
+  return { layouts, activeId: data.activeId ?? layouts[0].id }
 }
 
 export function saveLayouts(state: LayoutsState): void {

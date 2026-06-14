@@ -1,45 +1,26 @@
 import { useEffect, useState, type ReactElement } from 'react'
 import type { ConnectionState } from '@shared/types'
-import { useAccountStore } from '@renderer/state/accountStore'
-import { changePct, useMarketStore } from '@renderer/state/marketStore'
-import { useWatchlistStore } from '@renderer/state/watchlistStore'
-import { useSystemStore } from '@renderer/state/systemStore'
-import { useTicketStore } from '@renderer/state/ticketStore'
 import { useStreamBridge } from '@renderer/state/useStreamBridge'
 import { useHotkeys } from '@renderer/state/useHotkeys'
-import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
-import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
+import { useSystemStore } from '@renderer/state/systemStore'
+import { useChartStore } from '@renderer/state/chartStore'
+import { useLayoutStore } from '@renderer/state/layoutStore'
+import { useLiveStore } from '@renderer/state/liveStore'
+import { WidgetBoard } from '@renderer/components/WidgetBoard'
+import { LayoutTabs } from '@renderer/components/LayoutTabs'
+import { AddWidgetMenu } from '@renderer/components/AddWidgetMenu'
+import { AccountSelector } from '@renderer/components/AccountSelector'
+import { RiskBar } from '@renderer/panels/Risk/RiskBar'
 import { SettingsModal } from '@renderer/panels/Settings/SettingsModal'
 import { OnboardingModal } from '@renderer/panels/Onboarding/OnboardingModal'
 import { LiveArmModal } from '@renderer/panels/Live/LiveArmModal'
 import { ScreenerModal } from '@renderer/panels/Screener/ScreenerModal'
 import { OrderTicket } from '@renderer/panels/OrderTicket/OrderTicket'
-import { Orders } from '@renderer/panels/Orders/Orders'
-import { Positions } from '@renderer/panels/Positions/Positions'
-import { RiskBar } from '@renderer/panels/Risk/RiskBar'
-import { PopOutButton } from '@renderer/components/PopOutButton'
-import { IntervalBar } from '@renderer/components/IntervalBar'
-import { IndicatorsMenu } from '@renderer/components/IndicatorsMenu'
-import { LayoutTabs } from '@renderer/components/LayoutTabs'
-import { RailResizer } from '@renderer/components/RailResizer'
-import { AccountSelector } from '@renderer/components/AccountSelector'
-import { useChartStore } from '@renderer/state/chartStore'
-import { useDrawingStore } from '@renderer/state/drawingStore'
-import { activeLayout, useLayoutStore } from '@renderer/state/layoutStore'
-import { usePortfolioStore } from '@renderer/state/portfolioStore'
-import { useLiveStore } from '@renderer/state/liveStore'
-import { pct, signedUsd, usd } from '@renderer/lib/format'
 
-/**
- * Phase 1 shell. The Legend-style skeleton from Phase 0, now driven by the
- * simulated data layer: the left rail, watchlist, positions, and chart all
- * update live from streamed quotes/bars with zero credentials.
- */
 function App(): ReactElement {
   useStreamBridge()
   useHotkeys()
 
-  const railWidth = useLayoutStore((s) => activeLayout(s)?.railWidth ?? 320)
   const loaded = useLayoutStore((s) => s.loaded)
   const interval = useChartStore((s) => s.interval)
   const liveArmed = useLiveStore((s) => s.live.armed)
@@ -54,10 +35,8 @@ function App(): ReactElement {
   return (
     <div className={`app ${liveArmed ? 'app--live' : ''}`}>
       <TopBar />
-      <div className="workspace" style={{ gridTemplateColumns: `${railWidth}px 5px 1fr` }}>
-        <LeftRail />
-        <RailResizer />
-        <ChartPanel />
+      <div className="workspace-widgets">
+        <WidgetBoard />
       </div>
       <RiskBar />
       <StatusBar />
@@ -81,6 +60,7 @@ function TopBar(): ReactElement {
       <div className="topbar__left">
         <span className="brand">◆ Daytrader</span>
         <LayoutTabs />
+        <AddWidgetMenu />
       </div>
       <div className="topbar__center">
         <span className="market-pill">
@@ -97,147 +77,6 @@ function TopBar(): ReactElement {
         </button>
       </div>
     </header>
-  )
-}
-
-function SymbolHeader(): ReactElement {
-  const selected = useWatchlistStore((s) => s.selected)
-  const quotes = useMarketStore((s) => s.quotes)
-  const opens = useMarketStore((s) => s.opens)
-  const openTicket = useTicketStore((s) => s.openTicket)
-
-  const q = selected ? quotes[selected] : undefined
-  const last = q ? q.last ?? q.bid : undefined
-  const chg = selected ? changePct(quotes, opens, selected) : 0
-  const open = selected ? opens[selected] : undefined
-  const chgAbs = last != null && open != null ? last - open : 0
-  const up = chg >= 0
-
-  return (
-    <div className="symbol-head">
-      <div className="symbol-search">🔍 {selected ?? '—'}</div>
-      <h1 className="symbol-name">{selected ?? 'Select a symbol'}</h1>
-      <div className="symbol-price">{last != null ? usd(last) : '—'}</div>
-      <div className={`symbol-change ${up ? 'up' : 'down'}`}>
-        {up ? '▲' : '▼'} {signedUsd(chgAbs)} ({pct(chg)})
-      </div>
-      <div className="trade-buttons">
-        <button className="btn btn--buy" onClick={() => openTicket('buy')}>
-          Buy
-        </button>
-        <button className="btn btn--short" onClick={() => openTicket('sell')}>
-          Short
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function AccountSummary(): ReactElement {
-  const account = useAccountStore((s) => s.account)
-  const portfolios = usePortfolioStore((s) => s.portfolios)
-  const activeId = usePortfolioStore((s) => s.activeId)
-  const name = portfolios.find((p) => p.id === activeId)?.name ?? 'Account'
-
-  return (
-    <section className="rail-section">
-      <div className="rail-section__head">
-        <span>{name}</span>
-        <button className="btn btn--pill">Deposit</button>
-      </div>
-      <div className="account-value">{usd(account?.equity)}</div>
-      <div className="account-change up">
-        {account?.accountNumber ? `Acct ${account.accountNumber}` : 'Paper account'}
-      </div>
-      <div className="kv" style={{ marginTop: 10 }}>
-        <span>Buying power</span>
-        <span>{usd(account?.buyingPower)}</span>
-      </div>
-      <div className="kv">
-        <span>Cash</span>
-        <span>{usd(account?.cash)}</span>
-      </div>
-    </section>
-  )
-}
-
-function LeftRail(): ReactElement {
-  return (
-    <aside className="leftrail">
-      <SymbolHeader />
-      <AccountSummary />
-      <Watchlist />
-      <Orders />
-      <Positions />
-    </aside>
-  )
-}
-
-function ChartPanel(): ReactElement {
-  const selected = useWatchlistStore((s) => s.selected)
-  const quotes = useMarketStore((s) => s.quotes)
-  const opens = useMarketStore((s) => s.opens)
-  const interval = useChartStore((s) => s.interval)
-  const setInterval = useChartStore((s) => s.setInterval)
-  const range = useChartStore((s) => s.range)
-  const setRange = useChartStore((s) => s.setRange)
-  const autoScale = useChartStore((s) => s.autoScale)
-  const setAutoScale = useChartStore((s) => s.setAutoScale)
-  const drawMode = useChartStore((s) => s.drawMode)
-  const setDrawMode = useChartStore((s) => s.setDrawMode)
-  const indicators = useChartStore((s) => s.indicators)
-  const toggleIndicator = useChartStore((s) => s.toggleIndicator)
-
-  const q = selected ? quotes[selected] : undefined
-  const last = q ? q.last ?? q.bid : undefined
-  const chg = selected ? changePct(quotes, opens, selected) : 0
-  const up = chg >= 0
-
-  return (
-    <main className="chart">
-      <div className="chart__toolbar">
-        <div className="chart__symbol">
-          {selected ?? '—'} · {last != null ? usd(last) : '—'}{' '}
-          <span className={up ? 'up' : 'down'}>{pct(chg)}</span>
-        </div>
-        <div className="chart__tools">
-          <IndicatorsMenu indicators={indicators} onToggle={toggleIndicator} />
-          <span
-            className={`tool ${drawMode ? 'tool--on' : ''}`}
-            onClick={() => setDrawMode(!drawMode)}
-            title="Click the chart to add a horizontal line"
-          >
-            ✎ Draw
-          </span>
-          <span
-            className="tool"
-            onClick={() => selected && useDrawingStore.getState().clear(selected)}
-            title="Clear lines"
-          >
-            ⊘
-          </span>
-          <PopOutButton panel="chart" symbol={selected} title="Pop chart into its own window" />
-        </div>
-      </div>
-
-      <LightweightChart
-        symbol={selected}
-        interval={interval}
-        range={range}
-        autoScale={autoScale}
-        indicators={indicators}
-        drawMode={drawMode}
-      />
-
-      <IntervalBar
-        range={range}
-        onRange={setRange}
-        value={interval}
-        onChange={setInterval}
-        autoScale={autoScale}
-        onToggleAutoScale={() => setAutoScale(!autoScale)}
-      />
-    </main>
   )
 }
 

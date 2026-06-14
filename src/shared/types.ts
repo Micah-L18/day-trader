@@ -355,11 +355,39 @@ export type PanelKind = 'ticket' | 'chart' | 'watchlist' | 'positions' | 'orders
 
 // ---- Layouts ----
 
+export type WidgetType = 'chart' | 'watchlist' | 'positions' | 'orders' | 'account'
+
+export interface WidgetItem {
+  i: string
+  type: WidgetType
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
 export interface Layout {
   id: string
   name: string
   railWidth: number
   interval: Timeframe
+  widgets?: WidgetItem[]
+}
+
+export const DEFAULT_WIDGETS: WidgetItem[] = [
+  { i: 'account', type: 'account', x: 0, y: 0, w: 300, h: 150 },
+  { i: 'watchlist', type: 'watchlist', x: 0, y: 158, w: 300, h: 392 },
+  { i: 'chart', type: 'chart', x: 308, y: 0, w: 860, h: 440 },
+  { i: 'positions', type: 'positions', x: 308, y: 448, w: 540, h: 200 },
+  { i: 'orders', type: 'orders', x: 856, y: 448, w: 312, h: 200 }
+]
+
+export const WIDGET_LABELS: Record<WidgetType, string> = {
+  chart: 'Chart',
+  watchlist: 'Watchlist',
+  positions: 'Positions',
+  orders: 'Recent orders',
+  account: 'Account'
 }
 
 export interface LayoutsState {

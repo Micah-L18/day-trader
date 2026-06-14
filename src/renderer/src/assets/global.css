@@ -846,13 +846,22 @@ button {
   flex-direction: column;
   gap: 2px;
 }
+.indmenu__pop--left {
+  right: auto;
+  left: 0;
+}
 .indmenu__row {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   padding: 5px 6px;
+  border: none;
   border-radius: 5px;
+  background: transparent;
+  text-align: left;
   color: var(--text-dim);
+  font: inherit;
   font-size: 12px;
   cursor: pointer;
 }
@@ -1000,3 +1009,113 @@ button {
   font-weight: 600;
 }
 
+
+/* ---------- Widget board (Phase 14) ---------- */
+.workspace-widgets {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+.widgetboard {
+  position: absolute;
+  inset: 0;
+}
+.widgetboard__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+}
+.widget {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.widget__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 26px;
+  padding: 0 8px 0 10px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+  flex: 0 0 auto;
+}
+.widget__title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+}
+.widget__x {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  font-size: 12px;
+}
+.widget__x:hover {
+  color: var(--down);
+}
+.widget__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.widget__body > .chart {
+  flex: 1;
+  min-height: 0;
+}
+.widget__body > .rail-section {
+  flex: 1;
+  min-height: 0;
+  border-bottom: none;
+}
+.widget__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+.widget__resize::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--text-faint);
+  border-bottom: 2px solid var(--text-faint);
+}
+.chip {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.chip--buy {
+  background: rgba(0, 200, 5, 0.14);
+  border-color: rgba(0, 200, 5, 0.4);
+  color: var(--up);
+}
+.chip--sell {
+  background: rgba(255, 80, 0, 0.12);
+  border-color: rgba(255, 80, 0, 0.35);
+  color: var(--down);
+}
