@@ -8,6 +8,7 @@ import type {
   Timeframe
 } from '@shared/types'
 import { alpacaEndpoints, type AlpacaEndpoints } from './endpoints'
+import { TIMEFRAME_MS } from '../sim/priceEngine'
 import {
   TIMEFRAME_PARAM,
   mapAccount,
@@ -69,11 +70,22 @@ export class AlpacaRest {
 
   async getBars(symbol: string, timeframe: Timeframe, limit: number): Promise<Bar[]> {
     const tf = TIMEFRAME_PARAM[timeframe]
+    // Pull the most-recent `limit` bars (sort=desc), reversed to ascending for
+    // the chart. `end` is held back ~16 min because the free IEX feed rejects
+    // queries inside the last 15 minutes; `start` reaches back far enough to
+    // span weekends/holidays so we always get the last session.
+    const endMs = Date.now() - 16 * 60_000
+    const lookbackMs = Math.max(7 * 86_400_000, limit * TIMEFRAME_MS[timeframe] * 4)
+    const start = new Date(endMs - lookbackMs).toISOString()
+    const end = new Date(endMs).toISOString()
     const url =
       `${this.ep.data}/v2/stocks/${encodeURIComponent(symbol.toUpperCase())}/bars` +
-      `?timeframe=${tf}&limit=${limit}&feed=${this.ep.feed}&sort=asc`
+      `?timeframe=${tf}&limit=${limit}&feed=${this.ep.feed}&sort=desc` +
+      `&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`
     const data = await this.request<{ bars: AlpacaBar[] | null }>(url)
-    return (data.bars ?? []).map((b) => mapBar(symbol.toUpperCase(), b))
+    const bars = (data.bars ?? []).map((b) => mapBar(symbol.toUpperCase(), b))
+    bars.reverse() // newest-first from the API → oldest-first for the chart
+    return bars
   }
 
   async submitOrder(req: OrderRequest): Promise<Order> {

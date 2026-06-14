@@ -29,15 +29,24 @@ describe('AlpacaRest', () => {
     expect((init.headers as Record<string, string>)['APCA-API-KEY-ID']).toBe('KID')
   })
 
-  it('builds the bars URL with feed + timeframe and maps bars', async () => {
-    const f = mockFetch({ bars: [{ t: '2026-06-01T13:30:00Z', o: 1, h: 2, l: 0.5, c: 1.5, v: 1000 }] })
+  it('requests recent bars (sort=desc) and returns them ascending', async () => {
+    const f = mockFetch({
+      bars: [
+        { t: '2026-06-01T13:31:00Z', o: 1.5, h: 2, l: 1, c: 1.8, v: 500 }, // newest first
+        { t: '2026-06-01T13:30:00Z', o: 1, h: 2, l: 0.5, c: 1.5, v: 1000 }
+      ]
+    })
     const rest = new AlpacaRest(creds, { fetchFn: f as unknown as typeof fetch })
 
     const bars = await rest.getBars('aapl', '1Min', 50)
-    expect(bars[0]).toMatchObject({ symbol: 'AAPL', open: 1, close: 1.5, volume: 1000 })
-    expect(String(f.mock.calls[0][0])).toBe(
-      'https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=1Min&limit=50&feed=iex&sort=asc'
-    )
+    // The API returns newest-first; output must be ascending (oldest first).
+    expect(bars[0].time).toBeLessThan(bars[1].time)
+    expect(bars[0]).toMatchObject({ symbol: 'AAPL', open: 1, close: 1.5 })
+
+    const url = String(f.mock.calls[0][0])
+    expect(url).toContain('/v2/stocks/AAPL/bars?timeframe=1Min&limit=50&feed=iex&sort=desc')
+    expect(url).toContain('start=')
+    expect(url).toContain('end=')
   })
 
   it('serializes a bracket order body', async () => {
