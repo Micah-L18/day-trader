@@ -1,6 +1,13 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { DEFAULT_WATCHLIST } from '@shared/types'
+import { loadConfig } from './config'
+import { createProviders } from './providers'
+import { registerIpc, wireStreams } from './ipc'
+
+const config = loadConfig()
+const providers = createProviders(config)
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -30,8 +37,6 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // electron-vite injects ELECTRON_RENDERER_URL for the dev server; load the
-  // built file in production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -46,7 +51,13 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  registerIpcHandlers()
+  registerIpc(providers, config)
+  wireStreams(providers)
+
+  // Begin streaming the default watchlist immediately (sim needs no creds).
+  providers.marketData.subscribe([...DEFAULT_WATCHLIST])
+  providers.marketData.start()
+  providers.broker.start()
 
   createWindow()
 
@@ -56,22 +67,10 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (process.platform !== 'darwin') app.quit()
 })
 
-/**
- * Minimal IPC surface for Phase 0. Later phases add quotes/bars/orders/etc.,
- * all routed through here so the renderer never touches the broker directly.
- */
-function registerIpcHandlers(): void {
-  ipcMain.handle('app:getVersion', () => app.getVersion())
-
-  // The live-trading hard gate (see PLAN.md §4). Phase 0 always reports paper;
-  // real money requires mode=live AND ALLOW_LIVE_TRADING=1 AND on-screen confirm.
-  ipcMain.handle('app:getTradingMode', () => {
-    const liveAllowed = process.env['ALLOW_LIVE_TRADING'] === '1'
-    return { mode: 'paper' as const, liveAllowed }
-  })
-}
+app.on('will-quit', () => {
+  providers.marketData.stop()
+  providers.broker.stop()
+})

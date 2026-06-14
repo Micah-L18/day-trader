@@ -1,24 +1,20 @@
 import { useEffect, useState, type ReactElement } from 'react'
+import type { TradingModeInfo } from '@shared/types'
+import { useAccountStore } from '@renderer/state/accountStore'
+import { changePct, useMarketStore } from '@renderer/state/marketStore'
+import { useWatchlistStore } from '@renderer/state/watchlistStore'
+import { useStreamBridge } from '@renderer/state/useStreamBridge'
+import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
+import { Sparkline } from '@renderer/components/Sparkline'
+import { pct, signedUsd, usd } from '@renderer/lib/format'
 
 /**
- * Phase 0 shell. A static, dark, Legend-style skeleton that establishes the
- * panel geometry (left rail · chart · sub-panels · status bar) and proves the
- * secure IPC bridge works by reading the app version + trading mode from main.
- *
- * Each placeholder panel below becomes a real, data-driven component in later
- * phases (see PLAN.md §8). Nothing here talks to a broker yet.
+ * Phase 1 shell. The Legend-style skeleton from Phase 0, now driven by the
+ * simulated data layer: the left rail, watchlist, positions, and chart all
+ * update live from streamed quotes/bars with zero credentials.
  */
 function App(): ReactElement {
-  const [version, setVersion] = useState('…')
-  const [mode, setMode] = useState<{ mode: string; liveAllowed: boolean }>({
-    mode: 'paper',
-    liveAllowed: false
-  })
-
-  useEffect(() => {
-    window.api.getVersion().then(setVersion).catch(() => setVersion('?'))
-    window.api.getTradingMode().then(setMode).catch(() => undefined)
-  }, [])
+  useStreamBridge()
 
   return (
     <div className="app">
@@ -27,7 +23,7 @@ function App(): ReactElement {
         <LeftRail />
         <ChartPanel />
       </div>
-      <StatusBar version={version} mode={mode.mode} liveAllowed={mode.liveAllowed} />
+      <StatusBar />
     </div>
   )
 }
@@ -44,7 +40,7 @@ function TopBar(): ReactElement {
         </nav>
       </div>
       <div className="topbar__center">
-        <span className="market-pill">● Market closed</span>
+        <span className="market-pill">● Simulated feed · live</span>
       </div>
       <div className="topbar__right">
         <button className="btn btn--ghost">Add widget</button>
@@ -54,64 +50,132 @@ function TopBar(): ReactElement {
   )
 }
 
+function SymbolHeader(): ReactElement {
+  const selected = useWatchlistStore((s) => s.selected)
+  const quotes = useMarketStore((s) => s.quotes)
+  const opens = useMarketStore((s) => s.opens)
+
+  const q = selected ? quotes[selected] : undefined
+  const last = q ? q.last ?? q.bid : undefined
+  const chg = selected ? changePct(quotes, opens, selected) : 0
+  const open = selected ? opens[selected] : undefined
+  const chgAbs = last != null && open != null ? last - open : 0
+  const up = chg >= 0
+
+  return (
+    <div className="symbol-head">
+      <div className="symbol-search">🔍 {selected ?? '—'}</div>
+      <h1 className="symbol-name">{selected ?? 'Select a symbol'}</h1>
+      <div className="symbol-price">{last != null ? usd(last) : '—'}</div>
+      <div className={`symbol-change ${up ? 'up' : 'down'}`}>
+        {up ? '▲' : '▼'} {signedUsd(chgAbs)} ({pct(chg)})
+      </div>
+      <div className="trade-buttons">
+        <button className="btn btn--buy">Buy</button>
+        <button className="btn btn--short">Short</button>
+      </div>
+      <div className="hint">Order entry arrives in Phase 4 (behind the SafetyGate).</div>
+    </div>
+  )
+}
+
+function AccountSummary(): ReactElement {
+  const account = useAccountStore((s) => s.account)
+
+  return (
+    <section className="rail-section">
+      <div className="rail-section__head">
+        <span>Individual investing</span>
+        <button className="btn btn--pill">Deposit</button>
+      </div>
+      <div className="account-value">{usd(account?.equity)}</div>
+      <div className="account-change up">Paper account · simulated</div>
+      <div className="kv" style={{ marginTop: 10 }}>
+        <span>Buying power</span>
+        <span>{usd(account?.buyingPower)}</span>
+      </div>
+      <div className="kv">
+        <span>Cash</span>
+        <span>{usd(account?.cash)}</span>
+      </div>
+    </section>
+  )
+}
+
+function Positions(): ReactElement {
+  const positions = useAccountStore((s) => s.positions)
+
+  return (
+    <section className="rail-section rail-section--fill">
+      <div className="rail-section__title">Positions</div>
+      {positions.length === 0 ? (
+        <div className="empty">No positions.</div>
+      ) : (
+        <table className="postable">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Qty</th>
+              <th>Avg</th>
+              <th>Value</th>
+              <th>P&amp;L</th>
+            </tr>
+          </thead>
+          <tbody>
+            {positions.map((p) => (
+              <tr key={p.symbol}>
+                <td className="postable__sym">{p.symbol}</td>
+                <td>{p.qty}</td>
+                <td>{usd(p.avgPrice)}</td>
+                <td>{usd(p.marketValue)}</td>
+                <td className={p.unrealizedPnl >= 0 ? 'up' : 'down'}>
+                  {signedUsd(p.unrealizedPnl)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  )
+}
+
 function LeftRail(): ReactElement {
   return (
     <aside className="leftrail">
-      <div className="symbol-head">
-        <div className="symbol-search">🔍 UBXG</div>
-        <h1 className="symbol-name">U-BX Technology Ltd.</h1>
-        <div className="symbol-price">$7.80</div>
-        <div className="symbol-change up">▲ $3.01 (62.84%)</div>
-        <div className="trade-buttons">
-          <button className="btn btn--buy">Buy</button>
-          <button className="btn btn--short">Short</button>
-        </div>
-      </div>
-
-      <section className="rail-section">
-        <div className="rail-section__head">
-          <span>Individual investing</span>
-          <button className="btn btn--pill">Deposit</button>
-        </div>
-        <div className="account-value">$127.06</div>
-        <div className="account-change up">▲ $0.05 (0.04%) Today</div>
-        <div className="range-tabs">
-          {['LIVE', '1D', '1W', '1M', '3M', 'YTD', '1Y', 'ALL'].map((r) => (
-            <button key={r} className={`range ${r === '1D' ? 'range--active' : ''}`}>
-              {r}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="rail-section">
-        <div className="rail-section__title">Overview</div>
-        {[
-          ['Buying power', '$78.23'],
-          ['Options buying power', '$78.23'],
-          ['Futures buying power', '$78.23'],
-          ['Crypto buying power', '$78.23']
-        ].map(([k, v]) => (
-          <div className="kv" key={k}>
-            <span>{k}</span>
-            <span>{v}</span>
-          </div>
-        ))}
-      </section>
-
-      <section className="rail-section rail-section--fill">
-        <div className="rail-section__title">Positions</div>
-        <div className="empty">No positions yet — placeholder (Phase 4).</div>
-      </section>
+      <SymbolHeader />
+      <AccountSummary />
+      <Watchlist />
+      <Positions />
     </aside>
   )
 }
 
 function ChartPanel(): ReactElement {
+  const selected = useWatchlistStore((s) => s.selected)
+  const setBars = useMarketStore((s) => s.setBars)
+  const bars = useMarketStore((s) => (selected ? s.bars[selected] : undefined))
+  const quotes = useMarketStore((s) => s.quotes)
+  const opens = useMarketStore((s) => s.opens)
+
+  useEffect(() => {
+    if (!selected) return
+    void window.api.data.getBars(selected, '1Min', 120).then((b) => setBars(selected, b))
+  }, [selected, setBars])
+
+  const data = bars ? bars.map((b) => b.close) : []
+  const q = selected ? quotes[selected] : undefined
+  const last = q ? q.last ?? q.bid : undefined
+  const chg = selected ? changePct(quotes, opens, selected) : 0
+  const up = chg >= 0
+
   return (
     <main className="chart">
       <div className="chart__toolbar">
-        <div className="chart__symbol">UBXG · $7.80 <span className="up">▲ 62.84%</span></div>
+        <div className="chart__symbol">
+          {selected ?? '—'} · {last != null ? usd(last) : '—'}{' '}
+          <span className={up ? 'up' : 'down'}>{pct(chg)}</span>
+        </div>
         <div className="chart__tools">
           <span className="tool">＋ Indicators</span>
           <span className="tool">✎ Draw</span>
@@ -121,7 +185,10 @@ function ChartPanel(): ReactElement {
 
       <div className="chart__surface">
         <div className="chart__pane chart__pane--price">
-          <span className="pane-label">Candlesticks · Lightweight Charts v5 (Phase 2)</span>
+          <span className="pane-label">
+            {selected ?? ''} · live (Lightweight Charts candles land in Phase 2)
+          </span>
+          <Sparkline data={data} up={up} />
         </div>
         <div className="chart__pane chart__pane--volume">
           <span className="pane-label">Volume</span>
@@ -148,23 +215,29 @@ function ChartPanel(): ReactElement {
   )
 }
 
-function StatusBar({
-  version,
-  mode,
-  liveAllowed
-}: {
-  version: string
-  mode: string
-  liveAllowed: boolean
-}): ReactElement {
+function StatusBar(): ReactElement {
+  const [version, setVersion] = useState('…')
+  const [info, setInfo] = useState<TradingModeInfo>({
+    mode: 'paper',
+    liveAllowed: false,
+    provider: 'sim'
+  })
+
+  useEffect(() => {
+    void window.api.getVersion().then(setVersion)
+    void window.api.getTradingMode().then(setInfo)
+  }, [])
+
   return (
     <footer className="statusbar">
-      <span className={`mode-pill ${mode === 'live' ? 'mode-pill--live' : 'mode-pill--paper'}`}>
-        {mode.toUpperCase()} TRADING
+      <span
+        className={`mode-pill ${info.mode === 'live' ? 'mode-pill--live' : 'mode-pill--paper'}`}
+      >
+        {info.mode.toUpperCase()} TRADING
       </span>
-      <span className="status-dim">Phase 0 shell · simulated/paper-first</span>
+      <span className="status-dim">provider: {info.provider}</span>
       <span className="spacer" />
-      <span className="status-dim">live gate: {liveAllowed ? 'armed' : 'locked'}</span>
+      <span className="status-dim">live gate: {info.liveAllowed ? 'armed' : 'locked'}</span>
       <span className="status-dim">v{version}</span>
     </footer>
   )

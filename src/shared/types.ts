@@ -76,3 +76,40 @@ export interface Order extends OrderRequest {
   submittedAt: number
   reason?: string
 }
+
+/** Bar aggregation intervals understood by providers. */
+export type Timeframe = '1Sec' | '1Min' | '5Min' | '15Min' | '1Hour' | '1Day'
+
+export interface Trade {
+  symbol: string
+  time: number
+  price: number
+  size: number
+}
+
+/**
+ * A streamed bar. `closed` is false while the current interval is still
+ * forming (so a chart can update the last candle) and true when it rolls over.
+ */
+export interface BarUpdate extends Bar {
+  timeframe: Timeframe
+  closed: boolean
+}
+
+/** Symbols the app subscribes to by default until the user customizes them. */
+export const DEFAULT_WATCHLIST = [
+  'AAPL',
+  'NVDA',
+  'TSLA',
+  'AMZN',
+  'MSFT',
+  'SPY',
+  'AMD',
+  'META'
+] as const
+
+export interface TradingModeInfo {
+  mode: TradingMode
+  liveAllowed: boolean
+  provider: string
+}

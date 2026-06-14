@@ -1,21 +1,65 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import type {
+  Account,
+  Bar,
+  BarUpdate,
+  Order,
+  Position,
+  Quote,
+  Timeframe,
+  TradingModeInfo,
+  Trade
+} from '@shared/types'
 
-export interface TradingModeInfo {
-  mode: 'paper' | 'live'
-  liveAllowed: boolean
+/** Subscribe to a main→renderer push channel; returns an unsubscribe fn. */
+function on<T>(channel: string, cb: (payload: T) => void): () => void {
+  const listener = (_e: IpcRendererEvent, payload: T): void => cb(payload)
+  ipcRenderer.on(channel, listener)
+  return () => {
+    ipcRenderer.removeListener(channel, listener)
+  }
 }
 
 /**
- * The typed API surface exposed to the renderer. Every capability the UI needs
- * is added here and backed by an ipcMain handler in the main process — the
- * renderer has no direct access to Node, the filesystem, or the broker.
- *
- * Later phases extend this with quotes/bars/orders/positions/account/hotkeys.
+ * The typed API surface exposed to the renderer. Everything is backed by an
+ * ipcMain handler — the renderer never touches Node, the filesystem, or a
+ * broker SDK directly.
  */
 const api = {
   getVersion: (): Promise<string> => ipcRenderer.invoke('app:getVersion'),
-  getTradingMode: (): Promise<TradingModeInfo> => ipcRenderer.invoke('app:getTradingMode')
+  getTradingMode: (): Promise<TradingModeInfo> => ipcRenderer.invoke('app:getTradingMode'),
+
+  data: {
+    getBars: (symbol: string, timeframe: Timeframe, limit: number): Promise<Bar[]> =>
+      ipcRenderer.invoke('data:getBars', symbol, timeframe, limit),
+    subscribe: (symbols: string[]): Promise<void> => ipcRenderer.invoke('data:subscribe', symbols),
+    unsubscribe: (symbols: string[]): Promise<void> =>
+      ipcRenderer.invoke('data:unsubscribe', symbols),
+    onQuote: (cb: (q: Quote) => void): (() => void) => on<Quote>('stream:quote', cb),
+    onBar: (cb: (b: BarUpdate) => void): (() => void) => on<BarUpdate>('stream:bar', cb),
+    onTrade: (cb: (t: Trade) => void): (() => void) => on<Trade>('stream:trade', cb)
+  },
+
+  account: {
+    get: (): Promise<Account> => ipcRenderer.invoke('account:get'),
+    onUpdate: (cb: (a: Account) => void): (() => void) => on<Account>('stream:account', cb)
+  },
+
+  positions: {
+    get: (): Promise<Position[]> => ipcRenderer.invoke('positions:get'),
+    onUpdate: (cb: (p: Position[]) => void): (() => void) => on<Position[]>('stream:positions', cb)
+  },
+
+  orders: {
+    get: (): Promise<Order[]> => ipcRenderer.invoke('orders:get'),
+    onUpdate: (cb: (o: Order) => void): (() => void) => on<Order>('stream:order', cb)
+  },
+
+  watchlist: {
+    get: (): Promise<string[]> => ipcRenderer.invoke('watchlist:get'),
+    set: (symbols: string[]): Promise<string[]> => ipcRenderer.invoke('watchlist:set', symbols)
+  }
 }
 
 export type Api = typeof api
@@ -28,7 +72,6 @@ if (process.contextIsolated) {
     console.error(error)
   }
 } else {
-  // Fallback for the (non-default) case where context isolation is disabled.
   // @ts-ignore - defined on Window in index.d.ts
   window.electron = electronAPI
   // @ts-ignore

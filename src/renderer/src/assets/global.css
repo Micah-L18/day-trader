@@ -336,3 +336,80 @@ button {
   background: rgba(255, 80, 0, 0.2);
   color: var(--down);
 }
+
+/* ---------- Live additions (Phase 1) ---------- */
+.hint {
+  color: var(--text-faint);
+  font-size: 11px;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
+.watchlist {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.wl-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 8px;
+  text-align: left;
+  color: var(--text);
+}
+.wl-row:hover {
+  background: var(--bg-elev);
+}
+.wl-row--active {
+  background: var(--bg-elev);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.wl-sym {
+  font-weight: 600;
+}
+.wl-last {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.wl-chg {
+  font-variant-numeric: tabular-nums;
+  min-width: 56px;
+  text-align: right;
+}
+
+.postable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.postable th {
+  text-align: right;
+  color: var(--text-faint);
+  font-weight: 500;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.postable th:first-child {
+  text-align: left;
+}
+.postable td {
+  text-align: right;
+  padding: 5px 6px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.postable__sym {
+  text-align: left !important;
+  font-weight: 600;
+}
+
+.sparkline {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
