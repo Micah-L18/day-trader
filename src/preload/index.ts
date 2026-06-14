@@ -8,6 +8,7 @@ import type {
   ConnectionStatus,
   FlattenResult,
   Keymap,
+  LayoutsState,
   Order,
   OrderRequest,
   PanelKind,
@@ -104,6 +105,11 @@ const api = {
   hotkeys: {
     get: (): Promise<Keymap> => ipcRenderer.invoke('hotkeys:get'),
     save: (keymap: Keymap): Promise<Keymap> => ipcRenderer.invoke('hotkeys:save', keymap)
+  },
+
+  layouts: {
+    get: (): Promise<LayoutsState> => ipcRenderer.invoke('layouts:get'),
+    save: (state: LayoutsState): Promise<LayoutsState> => ipcRenderer.invoke('layouts:save', state)
   }
 }
 

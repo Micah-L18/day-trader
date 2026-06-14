@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { DEFAULT_KEYMAP, DEFAULT_WATCHLIST, type Keymap } from '@shared/types'
+import { DEFAULT_KEYMAP, DEFAULT_WATCHLIST, type Keymap, type LayoutsState } from '@shared/types'
 
 const filePath = (name: string): string => join(app.getPath('userData'), name)
 
@@ -39,4 +39,18 @@ export function loadWatchlist(): string[] {
 
 export function saveWatchlist(symbols: string[]): void {
   writeJson('watchlist.json', { symbols })
+}
+
+const DEFAULT_LAYOUTS: LayoutsState = {
+  layouts: [{ id: 'default', name: 'Layout 1', railWidth: 320, interval: '1Min' }],
+  activeId: 'default'
+}
+
+export function loadLayouts(): LayoutsState {
+  const data = readJson<LayoutsState>('layouts.json', DEFAULT_LAYOUTS)
+  return data.layouts && data.layouts.length > 0 ? data : DEFAULT_LAYOUTS
+}
+
+export function saveLayouts(state: LayoutsState): void {
+  writeJson('layouts.json', state)
 }

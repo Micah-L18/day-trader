@@ -1,10 +1,11 @@
-import { useEffect, type ReactElement } from 'react'
-import type { PanelKind } from '@shared/types'
+import { useEffect, useState, type ReactElement } from 'react'
+import type { PanelKind, Timeframe } from '@shared/types'
 import { useStreamBridge } from '@renderer/state/useStreamBridge'
 import { useWatchlistStore } from '@renderer/state/watchlistStore'
 import { changePct, useMarketStore } from '@renderer/state/marketStore'
 import { TicketForm } from '@renderer/panels/OrderTicket/TicketForm'
 import { LightweightChart } from '@renderer/panels/Chart/LightweightChart'
+import { IntervalBar } from '@renderer/components/IntervalBar'
 import { Watchlist } from '@renderer/panels/Watchlist/Watchlist'
 import { Orders } from '@renderer/panels/Orders/Orders'
 import { Positions } from '@renderer/panels/Positions/Positions'
@@ -14,6 +15,7 @@ import { pct, usd } from '@renderer/lib/format'
  * primary window; seeds its symbol from the URL rather than the shared watchlist. */
 export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: string | null }): ReactElement {
   useStreamBridge({ loadWatchlist: false })
+  const [chartInterval, setChartInterval] = useState<Timeframe>('1Min')
 
   useEffect(() => {
     if (!symbol) return
@@ -36,7 +38,8 @@ export function PanelWindow({ panel, symbol }: { panel: PanelKind; symbol: strin
       {panel === 'chart' && (
         <>
           <PanelHeader symbol={symbol} />
-          <LightweightChart symbol={symbol} />
+          <LightweightChart symbol={symbol} interval={chartInterval} />
+          <IntervalBar value={chartInterval} onChange={setChartInterval} />
         </>
       )}
       {panel === 'watchlist' && (

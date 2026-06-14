@@ -1,7 +1,7 @@
 import type { AlpacaCredentials, Bar, ConnectionState, Timeframe, Trade } from '@shared/types'
 import { TypedEmitter } from '../emitter'
 import type { MarketDataEvents, MarketDataProvider } from '../types'
-import { TIMEFRAME_MS } from '../sim/priceEngine'
+import { TIMEFRAME_MS } from '@shared/types'
 import { AlpacaRest } from './rest'
 import { AlpacaDataStream } from './dataStream'
 import { alpacaEndpoints } from './endpoints'

@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
-import type { HotkeyAction, OrderStatus } from '@shared/types'
+import { CHART_INTERVALS, type HotkeyAction, type OrderStatus } from '@shared/types'
 import { useKeymapStore } from './keymapStore'
 import { useTicketStore } from './ticketStore'
 import { useWatchlistStore } from './watchlistStore'
 import { useRiskStore } from './riskStore'
 import { useAccountStore } from './accountStore'
 import { useSystemStore } from './systemStore'
+import { useChartStore } from './chartStore'
 import { eventToBinding, findAction } from '@renderer/lib/hotkeys'
 
 const OPEN: ReadonlySet<OrderStatus> = new Set<OrderStatus>([
@@ -31,6 +32,12 @@ function cycleSymbol(dir: 1 | -1): void {
   if (symbols.length === 0) return
   const idx = selected ? symbols.indexOf(selected) : -1
   select(symbols[(idx + dir + symbols.length) % symbols.length])
+}
+
+function cycleInterval(): void {
+  const { interval, setInterval } = useChartStore.getState()
+  const idx = CHART_INTERVALS.findIndex((c) => c.tf === interval)
+  setInterval(CHART_INTERVALS[(idx + 1) % CHART_INTERVALS.length].tf)
 }
 
 async function run(action: HotkeyAction): Promise<void> {
@@ -59,6 +66,9 @@ async function run(action: HotkeyAction): Promise<void> {
       break
     case 'prevSymbol':
       cycleSymbol(-1)
+      break
+    case 'cycleInterval':
+      cycleInterval()
       break
     case 'focusSearch':
       document.getElementById('symbol-search-input')?.focus()

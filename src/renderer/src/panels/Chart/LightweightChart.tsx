@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactElement } from 'react'
+import { useCallback, useEffect, useRef, type ReactElement } from 'react'
 import {
   CandlestickSeries,
   CrosshairMode,
@@ -12,22 +12,27 @@ import {
   type LineData,
   type UTCTimestamp
 } from 'lightweight-charts'
+import { TIMEFRAME_MS, type Bar, type Timeframe } from '@shared/types'
 import { macd } from '@shared/indicators/macd'
 import { useMarketStore } from '@renderer/state/marketStore'
 
-const HISTORY = 150
-
-const toTime = (ms: number): UTCTimestamp => (Math.floor(ms / 1000) as UTCTimestamp)
+const HISTORY = 200
+const toTime = (ms: number): UTCTimestamp => Math.floor(ms / 1000) as UTCTimestamp
 const UP = '#00c805'
 const DOWN = '#ff5000'
 
 /**
- * The Legend-style chart: candlesticks (pane 0), a Volume histogram (pane 1),
- * and a computed MACD(12,26,9) — line, signal, histogram (pane 2). History
- * comes from `getBars`; live updates ride the same `bars` store slice the
- * stream bridge keeps current.
+ * Candles (pane 0) + Volume (pane 1) + MACD(12,26,9) (pane 2) at the given
+ * interval. History comes from getBars; live ticks are aggregated into the
+ * current interval's forming bar so the chart moves at any timeframe.
  */
-export function LightweightChart({ symbol }: { symbol: string | null }): ReactElement {
+export function LightweightChart({
+  symbol,
+  interval
+}: {
+  symbol: string | null
+  interval: Timeframe
+}): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const candleRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
@@ -35,112 +40,21 @@ export function LightweightChart({ symbol }: { symbol: string | null }): ReactEl
   const macdRef = useRef<ISeriesApi<'Line'> | null>(null)
   const signalRef = useRef<ISeriesApi<'Line'> | null>(null)
   const histRef = useRef<ISeriesApi<'Histogram'> | null>(null)
-  const fitRef = useRef(false)
+  const barsRef = useRef<Bar[]>([])
 
-  const bars = useMarketStore((s) => (symbol ? s.bars[symbol] : undefined))
+  const quote = useMarketStore((s) => (symbol ? s.quotes[symbol] : undefined))
 
-  // Build the chart + panes once.
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-
-    let chart: IChartApi | null = null
-    try {
-      chart = createChart(container, {
-        autoSize: true,
-        layout: {
-          background: { color: 'transparent' },
-          textColor: '#8b97a6',
-          fontSize: 11,
-          panes: { separatorColor: '#1e2630', separatorHoverColor: '#2a3441', enableResize: true }
-        },
-        grid: {
-          vertLines: { color: 'rgba(30,38,48,0.5)' },
-          horzLines: { color: 'rgba(30,38,48,0.5)' }
-        },
-        rightPriceScale: { borderColor: '#1e2630' },
-        timeScale: { borderColor: '#1e2630', timeVisible: true, secondsVisible: false },
-        crosshair: { mode: CrosshairMode.Normal }
-      })
-
-      // Ensure the volume (1) and MACD (2) panes exist before adding series to
-      // them — some builds don't auto-create panes from a paneIndex argument.
-      while (chart.panes().length < 3) chart.addPane()
-
-      const candle = chart.addSeries(
-        CandlestickSeries,
-        {
-          upColor: UP,
-          downColor: DOWN,
-          wickUpColor: UP,
-          wickDownColor: DOWN,
-          borderVisible: false
-        },
-        0
-      )
-      const volume = chart.addSeries(
-        HistogramSeries,
-        { priceFormat: { type: 'volume' }, priceLineVisible: false, lastValueVisible: false },
-        1
-      )
-      const histogram = chart.addSeries(
-        HistogramSeries,
-        { priceLineVisible: false, lastValueVisible: false },
-        2
-      )
-      const macdLine = chart.addSeries(
-        LineSeries,
-        { color: '#2f81f7', lineWidth: 1, priceLineVisible: false, lastValueVisible: false },
-        2
-      )
-      const signalLine = chart.addSeries(
-        LineSeries,
-        { color: '#f0a020', lineWidth: 1, priceLineVisible: false, lastValueVisible: false },
-        2
-      )
-
-      const panes = chart.panes()
-      panes[0]?.setStretchFactor(6)
-      panes[1]?.setStretchFactor(1.4)
-      panes[2]?.setStretchFactor(2.4)
-
-      chartRef.current = chart
-      candleRef.current = candle
-      volumeRef.current = volume
-      macdRef.current = macdLine
-      signalRef.current = signalLine
-      histRef.current = histogram
-      fitRef.current = true
-    } catch (err) {
-      console.error('LightweightChart init failed:', err)
-    }
-
-    return () => {
-      chart?.remove()
-      chartRef.current = null
-    }
-  }, [])
-
-  // Load history when the symbol changes (live updates flow via the store).
-  useEffect(() => {
-    if (!symbol) return
-    fitRef.current = true
-    void window.api.data
-      .getBars(symbol, '1Min', HISTORY)
-      .then((h) => useMarketStore.getState().setBars(symbol, h))
-  }, [symbol])
-
-  // Render the current bars (history + live) into every series.
-  useEffect(() => {
+  const redraw = useCallback((fit: boolean): void => {
+    const chart = chartRef.current
     const candle = candleRef.current
     const volume = volumeRef.current
     const macdLine = macdRef.current
     const signalLine = signalRef.current
     const histogram = histRef.current
-    const chart = chartRef.current
-    if (!candle || !volume || !macdLine || !signalLine || !histogram || !chart) return
+    if (!chart || !candle || !volume || !macdLine || !signalLine || !histogram) return
 
-    if (!bars || bars.length === 0) {
+    const bars = barsRef.current
+    if (bars.length === 0) {
       candle.setData([])
       volume.setData([])
       macdLine.setData([])
@@ -183,12 +97,119 @@ export function LightweightChart({ symbol }: { symbol: string | null }): ReactEl
     macdLine.setData(macdLineData)
     signalLine.setData(signalLineData)
     histogram.setData(histData)
+    if (fit) chart.timeScale().fitContent()
+  }, [])
 
-    if (fitRef.current) {
-      chart.timeScale().fitContent()
-      fitRef.current = false
+  // Build the chart + panes once.
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    let chart: IChartApi | null = null
+    try {
+      chart = createChart(container, {
+        autoSize: true,
+        layout: {
+          background: { color: 'transparent' },
+          textColor: '#8b97a6',
+          fontSize: 11,
+          panes: { separatorColor: '#1e2630', separatorHoverColor: '#2a3441', enableResize: true }
+        },
+        grid: {
+          vertLines: { color: 'rgba(30,38,48,0.5)' },
+          horzLines: { color: 'rgba(30,38,48,0.5)' }
+        },
+        rightPriceScale: { borderColor: '#1e2630' },
+        timeScale: { borderColor: '#1e2630', timeVisible: true, secondsVisible: false },
+        crosshair: { mode: CrosshairMode.Normal }
+      })
+
+      while (chart.panes().length < 3) chart.addPane()
+
+      const candle = chart.addSeries(
+        CandlestickSeries,
+        { upColor: UP, downColor: DOWN, wickUpColor: UP, wickDownColor: DOWN, borderVisible: false },
+        0
+      )
+      const volume = chart.addSeries(
+        HistogramSeries,
+        { priceFormat: { type: 'volume' }, priceLineVisible: false, lastValueVisible: false },
+        1
+      )
+      const histogram = chart.addSeries(
+        HistogramSeries,
+        { priceLineVisible: false, lastValueVisible: false },
+        2
+      )
+      const macdLine = chart.addSeries(
+        LineSeries,
+        { color: '#2f81f7', lineWidth: 1, priceLineVisible: false, lastValueVisible: false },
+        2
+      )
+      const signalLine = chart.addSeries(
+        LineSeries,
+        { color: '#f0a020', lineWidth: 1, priceLineVisible: false, lastValueVisible: false },
+        2
+      )
+
+      const panes = chart.panes()
+      panes[0]?.setStretchFactor(6)
+      panes[1]?.setStretchFactor(1.4)
+      panes[2]?.setStretchFactor(2.4)
+
+      chartRef.current = chart
+      candleRef.current = candle
+      volumeRef.current = volume
+      macdRef.current = macdLine
+      signalRef.current = signalLine
+      histRef.current = histogram
+    } catch (err) {
+      console.error('LightweightChart init failed:', err)
     }
-  }, [bars])
+
+    return () => {
+      chart?.remove()
+      chartRef.current = null
+    }
+  }, [])
+
+  // Load history whenever symbol or interval changes.
+  useEffect(() => {
+    barsRef.current = []
+    redraw(true)
+    if (!symbol) return
+    let cancelled = false
+    void window.api.data.getBars(symbol, interval, HISTORY).then((h) => {
+      if (cancelled) return
+      barsRef.current = h
+      redraw(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [symbol, interval, redraw])
+
+  // Aggregate live ticks into the current interval's forming bar.
+  useEffect(() => {
+    if (!quote || !symbol) return
+    const price = quote.last ?? quote.bid
+    const tfMs = TIMEFRAME_MS[interval]
+    const bucket = Math.floor((quote.time || Date.now()) / tfMs) * tfMs
+    const bars = barsRef.current
+    const last = bars[bars.length - 1]
+
+    if (last && last.time === bucket) {
+      last.high = Math.max(last.high, price)
+      last.low = Math.min(last.low, price)
+      last.close = price
+    } else if (!last || bucket > last.time) {
+      bars.push({ symbol, time: bucket, open: price, high: price, low: price, close: price, volume: 0 })
+      if (bars.length > 500) bars.shift()
+    } else {
+      return
+    }
+    redraw(false)
+  }, [quote, symbol, interval, redraw])
 
   return <div ref={containerRef} className="chart__container" />
 }

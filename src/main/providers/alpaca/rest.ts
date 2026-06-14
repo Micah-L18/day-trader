@@ -8,7 +8,7 @@ import type {
   Timeframe
 } from '@shared/types'
 import { alpacaEndpoints, type AlpacaEndpoints } from './endpoints'
-import { TIMEFRAME_MS } from '../sim/priceEngine'
+import { TIMEFRAME_MS } from '@shared/types'
 import {
   TIMEFRAME_PARAM,
   mapAccount,

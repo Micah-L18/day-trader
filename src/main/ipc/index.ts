@@ -2,6 +2,7 @@ import { app, ipcMain } from 'electron'
 import {
   type AlpacaCredentials,
   type Keymap,
+  type LayoutsState,
   type OrderRequest,
   type PanelKind,
   type SaveSettingsInput,
@@ -14,7 +15,14 @@ import { loadCreds, saveCreds } from '../secrets/keychain'
 import { saveSettings } from '../settings'
 import { getSettingsInfo, testConnection } from '../settingsService'
 import { openPanelWindow } from '../windows'
-import { loadKeymap, loadWatchlist, saveKeymap, saveWatchlist } from '../persistence'
+import {
+  loadKeymap,
+  loadLayouts,
+  loadWatchlist,
+  saveKeymap,
+  saveLayouts,
+  saveWatchlist
+} from '../persistence'
 
 /**
  * Register all request/response IPC handlers. Every renderer capability is
@@ -74,6 +82,13 @@ export function registerIpc(manager: ProviderManager, config: AppConfig, gate: S
   ipcMain.handle('hotkeys:save', (_e, keymap: Keymap) => {
     saveKeymap(keymap)
     return keymap
+  })
+
+  // Layouts (persisted to JSON in userData).
+  ipcMain.handle('layouts:get', () => loadLayouts())
+  ipcMain.handle('layouts:save', (_e, state: LayoutsState) => {
+    saveLayouts(state)
+    return state
   })
 
   // ---- Settings ----

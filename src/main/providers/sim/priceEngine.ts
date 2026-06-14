@@ -1,4 +1,4 @@
-import type { Bar, Timeframe } from '@shared/types'
+import { TIMEFRAME_MS, type Bar, type Timeframe } from '@shared/types'
 
 /** Plausible starting prices; unknown symbols get a stable hash-derived price. */
 const SEED_PRICES: Record<string, number> = {
@@ -11,15 +11,6 @@ const SEED_PRICES: Record<string, number> = {
   AMD: 165.7,
   META: 520.6,
   UBXG: 7.8
-}
-
-export const TIMEFRAME_MS: Record<Timeframe, number> = {
-  '1Sec': 1_000,
-  '1Min': 60_000,
-  '5Min': 300_000,
-  '15Min': 900_000,
-  '1Hour': 3_600_000,
-  '1Day': 86_400_000
 }
 
 const round2 = (n: number): number => Math.round(n * 100) / 100

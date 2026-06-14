@@ -1,7 +1,7 @@
-import type { Bar, Quote, Timeframe, Trade } from '@shared/types'
+import { TIMEFRAME_MS, type Bar, type Quote, type Timeframe, type Trade } from '@shared/types'
 import { TypedEmitter } from '../emitter'
 import type { MarketDataEvents, MarketDataProvider } from '../types'
-import { PriceEngine, TIMEFRAME_MS } from './priceEngine'
+import { PriceEngine } from './priceEngine'
 
 /** Timeframe of the live forming bar we stream (Phase 2 chart consumes this). */
 const STREAM_TF: Timeframe = '1Min'

@@ -15,6 +15,11 @@ import { Orders } from '@renderer/panels/Orders/Orders'
 import { Positions } from '@renderer/panels/Positions/Positions'
 import { RiskBar } from '@renderer/panels/Risk/RiskBar'
 import { PopOutButton } from '@renderer/components/PopOutButton'
+import { IntervalBar } from '@renderer/components/IntervalBar'
+import { LayoutTabs } from '@renderer/components/LayoutTabs'
+import { RailResizer } from '@renderer/components/RailResizer'
+import { useChartStore } from '@renderer/state/chartStore'
+import { activeLayout, useLayoutStore } from '@renderer/state/layoutStore'
 import { pct, signedUsd, usd } from '@renderer/lib/format'
 
 /**
@@ -26,11 +31,23 @@ function App(): ReactElement {
   useStreamBridge()
   useHotkeys()
 
+  const railWidth = useLayoutStore((s) => activeLayout(s)?.railWidth ?? 320)
+  const loaded = useLayoutStore((s) => s.loaded)
+  const interval = useChartStore((s) => s.interval)
+
+  useEffect(() => {
+    void useLayoutStore.getState().load()
+  }, [])
+  useEffect(() => {
+    if (loaded) useLayoutStore.getState().updateActive({ interval })
+  }, [interval, loaded])
+
   return (
     <div className="app">
       <TopBar />
-      <div className="workspace">
+      <div className="workspace" style={{ gridTemplateColumns: `${railWidth}px 5px 1fr` }}>
         <LeftRail />
+        <RailResizer />
         <ChartPanel />
       </div>
       <RiskBar />
@@ -50,11 +67,7 @@ function TopBar(): ReactElement {
     <header className="topbar">
       <div className="topbar__left">
         <span className="brand">◆ Daytrader</span>
-        <nav className="tabs">
-          <button className="tab tab--active">Untitled layout</button>
-          <button className="tab">Chart Layout</button>
-          <button className="tab tab--add">＋</button>
-        </nav>
+        <LayoutTabs />
       </div>
       <div className="topbar__center">
         <span className="market-pill">
@@ -144,6 +157,8 @@ function ChartPanel(): ReactElement {
   const selected = useWatchlistStore((s) => s.selected)
   const quotes = useMarketStore((s) => s.quotes)
   const opens = useMarketStore((s) => s.opens)
+  const interval = useChartStore((s) => s.interval)
+  const setInterval = useChartStore((s) => s.setInterval)
 
   const q = selected ? quotes[selected] : undefined
   const last = q ? q.last ?? q.bid : undefined
@@ -164,21 +179,9 @@ function ChartPanel(): ReactElement {
         </div>
       </div>
 
-      <LightweightChart symbol={selected} />
+      <LightweightChart symbol={selected} interval={interval} />
 
-      <div className="chart__intervals">
-        {['1D', '1W', '1M', '3M', 'YTD', '1Y', '5Y', 'ALL'].map((i) => (
-          <button key={i} className="range">
-            {i}
-          </button>
-        ))}
-        <span className="spacer" />
-        {['10s', '15s', '1m'].map((i) => (
-          <button key={i} className={`range ${i === '1m' ? 'range--active' : ''}`}>
-            {i}
-          </button>
-        ))}
-      </div>
+      <IntervalBar value={interval} onChange={setInterval} />
     </main>
   )
 }

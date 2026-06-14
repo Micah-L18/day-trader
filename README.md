@@ -10,14 +10,24 @@ positions/P&L, and programmable hotkeys — backed by **Alpaca**.
 
 ## Status
 
-🚧 **Phase 0 — scaffold.** Secure Electron + Vite + React + TypeScript shell
-with the Legend-style layout skeleton and packaging config. Data, charts,
-orders, hotkeys, and layouts land in later phases (see [`PLAN.md`](./PLAN.md) §8).
+Phases 0–5 complete (see [`PLAN.md`](./PLAN.md) §8):
+
+- **Charting** — Lightweight Charts v5: candles + Volume + MACD panes, switchable
+  intervals (1m–1D) with live aggregation.
+- **Data/broker** — pluggable providers behind one seam: a credential-free **Sim**
+  (default) and **Alpaca** paper (REST history + WebSocket v2), hot-swappable.
+- **Order entry** — floating/detachable ticket (market/limit/stop/stop-limit +
+  bracket), one-click close, cancel — all through the single **SafetyGate**
+  (kill switch, daily-loss halt, exposure/rate/notional limits, panic-flatten).
+- **Hotkeys** — fully rebindable in-app keymap + a global panic key.
+- **Multi-window** — pop any panel (chart/ticket/watchlist/…) into its own OS window.
+- **Layouts** — named tabs + a resizable rail, persisted across restarts.
 
 ## Tech stack
 
-Electron · electron-vite · React 18 · TypeScript · (Lightweight Charts v5,
-Alpaca SDK, better-sqlite3 — added in later phases)
+Electron · electron-vite · React 19 · TypeScript · Lightweight Charts v5 ·
+Alpaca (REST + WS v2) · zustand · Vitest. Local state persisted as JSON in
+userData (keys encrypted via the OS keychain).
 
 ## Prerequisites
 

@@ -56,6 +56,7 @@ export const HOTKEY_ITEMS: { action: HotkeyAction; label: string }[] = [
   { action: 'cancelAll', label: 'Cancel all open orders' },
   { action: 'nextSymbol', label: 'Next symbol' },
   { action: 'prevSymbol', label: 'Previous symbol' },
+  { action: 'cycleInterval', label: 'Cycle chart interval' },
   { action: 'focusSearch', label: 'Focus symbol search' },
   { action: 'popoutChart', label: 'Pop out chart' },
   { action: 'openSettings', label: 'Open settings' }

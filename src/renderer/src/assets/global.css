@@ -90,11 +90,16 @@ button {
   margin-left: 8px;
 }
 .tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
   padding: 5px 12px;
   color: var(--text-dim);
+  cursor: pointer;
+  user-select: none;
 }
 .tab--active {
   background: var(--bg-elev);
@@ -103,6 +108,35 @@ button {
 }
 .tab--add {
   color: var(--text-faint);
+}
+.tab__close {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+.tab__close:hover {
+  color: var(--down);
+}
+.tab__edit {
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+  width: 110px;
+  padding: 2px 6px;
+}
+
+.resizer {
+  cursor: col-resize;
+  background: var(--border);
+  transition: background 0.1s;
+}
+.resizer:hover {
+  background: var(--accent);
 }
 .market-pill {
   color: var(--text-dim);

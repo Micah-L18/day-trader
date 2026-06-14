@@ -80,6 +80,24 @@ export interface Order extends OrderRequest {
 /** Bar aggregation intervals understood by providers. */
 export type Timeframe = '1Sec' | '1Min' | '5Min' | '15Min' | '1Hour' | '1Day'
 
+export const TIMEFRAME_MS: Record<Timeframe, number> = {
+  '1Sec': 1_000,
+  '1Min': 60_000,
+  '5Min': 300_000,
+  '15Min': 900_000,
+  '1Hour': 3_600_000,
+  '1Day': 86_400_000
+}
+
+/** Intervals offered in the chart's interval bar, with display labels. */
+export const CHART_INTERVALS: { tf: Timeframe; label: string }[] = [
+  { tf: '1Min', label: '1m' },
+  { tf: '5Min', label: '5m' },
+  { tf: '15Min', label: '15m' },
+  { tf: '1Hour', label: '1H' },
+  { tf: '1Day', label: '1D' }
+]
+
 export interface Trade {
   symbol: string
   time: number
@@ -204,6 +222,20 @@ export interface FlattenResult {
 /** Panels that can be popped out into their own OS window. */
 export type PanelKind = 'ticket' | 'chart' | 'watchlist' | 'positions' | 'orders'
 
+// ---- Layouts ----
+
+export interface Layout {
+  id: string
+  name: string
+  railWidth: number
+  interval: Timeframe
+}
+
+export interface LayoutsState {
+  layouts: Layout[]
+  activeId: string
+}
+
 // ---- Hotkeys ----
 
 export type HotkeyAction =
@@ -214,6 +246,7 @@ export type HotkeyAction =
   | 'cancelAll'
   | 'nextSymbol'
   | 'prevSymbol'
+  | 'cycleInterval'
   | 'focusSearch'
   | 'popoutChart'
   | 'openSettings'
@@ -230,6 +263,7 @@ export const DEFAULT_KEYMAP: Keymap = {
   cancelAll: 'shift+c',
   nextSymbol: ']',
   prevSymbol: '[',
+  cycleInterval: 'i',
   focusSearch: '/',
   popoutChart: 'shift+p',
   openSettings: 'mod+,'
